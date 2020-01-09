@@ -114,7 +114,7 @@ class DownloadAsyncTask extends AsyncTask<Uri, Integer, String> {
             fos.close();
 
         } catch (IOException e) {
-            Log.e("Pickit IOException = ", e.getMessage());
+            //Log.e("Pickit IOException = ", e.getMessage());
             errorReason = e.getMessage();
         }
 

@@ -24,7 +24,6 @@
 
         <Button
             android:id="@+id/btnSave"
-            style="@style/ucrop_RoundedCornerMaterialButton"
             android:layout_width="wrap_content"
             android:layout_height="44dp"
             android:layout_gravity="end"
@@ -33,6 +32,7 @@
             android:layout_marginBottom="8dp"
             android:backgroundTint="#FFFFFF"
             android:text="Done"
+            android:stateListAnimator="@null"
             android:enabled="false"
             android:textAllCaps="false"
             android:textColor="#497CFA"
@@ -40,12 +40,19 @@
 
     </androidx.appcompat.widget.Toolbar>
 
+    <View
+        android:id="@+id/shadow"
+        android:layout_below="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:background="#081A1C1D"/>
+
     <FrameLayout
         android:id="@+id/ucrop_frame"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_above="@+id/controls_wrapper"
-        android:layout_below="@+id/toolbar">
+        android:layout_below="@+id/shadow">
 
         <ImageView
             android:id="@+id/image_view_logo"

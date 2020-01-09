@@ -26,7 +26,6 @@ import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.text.TextUtils;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -35,7 +34,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
-import java.util.Locale;
 
 /**
  * @author Peli
@@ -115,7 +113,7 @@ public class FileUtils {
                 return cursor.getString(column_index);
             }
         } catch (IllegalArgumentException ex) {
-            Log.i(TAG, String.format(Locale.getDefault(), "getDataColumn: _data - [%s]", ex.getMessage()));
+            //Log.i(TAG, String.format(Locale.getDefault(), "getDataColumn: _data - [%s]", ex.getMessage()));
         } finally {
             if (cursor != null) {
                 cursor.close();
@@ -163,7 +161,7 @@ public class FileUtils {
                                 Uri.parse("content://downloads/public_downloads"), Long.valueOf(id));
                         return getDataColumn(context, contentUri, null, null);
                     } catch (NumberFormatException e) {
-                        Log.i(TAG, e.getMessage());
+                        //Log.i(TAG, e.getMessage());
                         return null;
                     }
                 }

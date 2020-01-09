@@ -14,15 +14,16 @@ sealed class PickMediaRequest {
 
 data class Photo(
     val proportion: Proportion,
-    val maxFileSizeBytes: Int = 8 * 1024 * 1024,
-    val maxResultWidth: Int = 2048,
-    val maxResultHeight: Int = 2048
+    val maxFileSizeBytes: Int,
+    val compressionQuality: Int,
+    val maxBitmapSize: Int,
+    val maxScaleMultiplier: Float
 ) : PickMediaRequest() {
-    enum class Proportion(val x: Float, val y: Float) {
-        PROFILE(1F, 1F),
-        COVER(343F, 136F),
-        POST_TALL(3F, 4F),
-        POST_WIDE(4F, 3F),
+    sealed class Proportion(open val x: Float, open val y: Float) {
+        object PROFILE : Proportion(1F, 1F)
+        object COVER : Proportion(343F, 136F)
+        object POST : Proportion(0F, 0F)
+        data class CUSTOM(override val x: Float, override val y: Float) : Proportion(x, y)
     }
 
     companion object {

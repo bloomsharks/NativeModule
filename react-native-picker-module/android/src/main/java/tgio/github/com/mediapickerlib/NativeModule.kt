@@ -1,6 +1,5 @@
 package tgio.github.com.mediapickerlib
 
-import android.util.Log
 import com.facebook.react.bridge.*
 
 class NativeModule(private val reactContext: ReactApplicationContext) :
@@ -17,7 +16,6 @@ class NativeModule(private val reactContext: ReactApplicationContext) :
             promise.reject("-1", "options is missing.")
             return
         }
-        println("options $options")
         nativePicker = NativePicker(
             activity = currentActivity!!,
             pickMediaRequest = ObjectMapper.constructMediaPickRequest(options),
@@ -31,7 +29,6 @@ class NativeModule(private val reactContext: ReactApplicationContext) :
                 }
 
                 override fun onDownloadProgress(progress: Int) {
-                    Log.d("Progress", "onDownloadProgress $progress")
                 }
             })
     }

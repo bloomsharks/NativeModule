@@ -137,31 +137,6 @@ public class UCropActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(final Menu menu) {
-//        getMenuInflater().inflate(R.menu.ucrop_menu_activity, menu);
-//
-//        // Change crop & loader menu icons color to match the rest of the UI colors
-//
-//        MenuItem menuItemLoader = menu.findItem(R.id.menu_loader);
-//        Drawable menuItemLoaderIcon = menuItemLoader.getIcon();
-//        if (menuItemLoaderIcon != null) {
-//            try {
-//                menuItemLoaderIcon.mutate();
-//                menuItemLoaderIcon.setColorFilter(mToolbarWidgetColor, PorterDuff.Mode.SRC_ATOP);
-//                menuItemLoader.setIcon(menuItemLoaderIcon);
-//            } catch (IllegalStateException e) {
-//                Log.i(TAG, String.format("%s - %s", e.getMessage(), getString(R.string.ucrop_mutate_exception_hint)));
-//            }
-//            ((Animatable) menuItemLoader.getIcon()).start();
-//        }
-//
-//        MenuItem menuItemCrop = menu.findItem(R.id.menu_crop);
-//        Drawable menuItemCropIcon = ContextCompat.getDrawable(this, mToolbarCropDrawable);
-//        if (menuItemCropIcon != null) {
-//            menuItemCropIcon.mutate();
-//            menuItemCropIcon.setColorFilter(mToolbarWidgetColor, PorterDuff.Mode.SRC_ATOP);
-//            menuItemCrop.setIcon(menuItemCropIcon);
-//        }
-
         return true;
     }
 

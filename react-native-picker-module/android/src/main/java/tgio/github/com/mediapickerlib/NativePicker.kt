@@ -5,7 +5,6 @@ import android.app.Activity
 import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
-import android.os.Build
 import androidx.core.content.ContextCompat
 import androidx.core.net.toFile
 import com.hbisoft.pickit.PickiT
@@ -72,8 +71,8 @@ class NativePicker(
                 "Pick File"
             ),
             requestCode = PickMediaRequest.REQUEST_FILE,
-            callback = { requestCode, resultCode, data ->
-                if(data?.data == null || resultCode != Activity.RESULT_OK) {
+            callback = { _, resultCode, data ->
+                if (data?.data == null || resultCode != Activity.RESULT_OK) {
                     nativePickerCallback.onMediaPickCanceled("Picking file canceled.")
                     return@proxy
                 }
@@ -95,19 +94,15 @@ class NativePicker(
                         originalFileSize: Int,
                         Reason: String?
                     ) {
-                        println("RRSP path = [${path}], wasDriveFile = [${wasDriveFile}], wasUnknownProvider = [${wasUnknownProvider}], wasSuccessful = [${wasSuccessful}], originalFileName = [${originalFileName}], originalFileSize = [${originalFileSize}], Reason = [${Reason}]")
-                        if(!wasSuccessful) {
+                        if (!wasSuccessful) {
                             nativePickerCallback.onMediaPickCanceled(Reason)
                             return
                         }
                         val file = File(path!!)
-                        val exists = file.exists()
-                        println("RRSP exists $exists ${file.absolutePath}")
                         var fileSize = originalFileSize.toString()
-                        if(originalFileSize == 0) {
+                        if (originalFileSize == 0) {
                             fileSize = file.length().toString()
                         }
-                        println("RRSP fileSize = $fileSize")
                         nativePickerCallback.onMediaPicked(
                             PickFileResponse(
                                 mediaRequest = pickMediaRequest,
@@ -121,7 +116,7 @@ class NativePicker(
                     }
 
                 }).also {
-                    it.getPath(data.data, Build.VERSION.SDK_INT)
+                    it.getPath(data.data)
                 }
             }
         )
@@ -137,8 +132,8 @@ class NativePicker(
                 "Pick Video"
             ),
             requestCode = PickMediaRequest.REQUEST_VIDEO,
-            callback = { requestCode, resultCode, data ->
-                if(data?.data == null || resultCode != Activity.RESULT_OK) {
+            callback = { _, resultCode, data ->
+                if (data?.data == null || resultCode != Activity.RESULT_OK) {
                     nativePickerCallback.onMediaPickCanceled("Picking video canceled.")
                     return@proxy
                 }
@@ -150,6 +145,7 @@ class NativePicker(
                     override fun PickiTonStartListener() {
                         nativePickerCallback.onDownloadProgress(0)
                     }
+
                     override fun PickiTonCompleteListener(
                         path: String?,
                         wasDriveFile: Boolean,
@@ -159,7 +155,7 @@ class NativePicker(
                         originalFileSize: Int,
                         Reason: String?
                     ) {
-                        if(!wasSuccessful) {
+                        if (!wasSuccessful) {
                             nativePickerCallback.onMediaPickCanceled(Reason)
                             return
                         }
@@ -178,7 +174,7 @@ class NativePicker(
                     }
 
                 }).also {
-                    it.getPath(data.data, Build.VERSION.SDK_INT)
+                    it.getPath(data.data)
                 }
             }
         )
@@ -187,43 +183,69 @@ class NativePicker(
     private fun launchCrop(uri: Uri) {
         val fileName = getFileName(uri.lastPathSegment!!)
         val photoRequest = pickMediaRequest as Photo
-        proxy(
-            intent = UCrop.of(
-                uri,
-                Uri.fromFile(File(activity.cacheDir, fileName))
-            ).withOptions(getDefaultCropOptions().apply {
-                photoRequest.nextButtonString?.let {
-                    setNextButtonText(it)
-                }
-                setMaxSizeBytes(photoRequest.maxFileSizeBytes)
-                withAspectRatio(photoRequest.proportion.x, photoRequest.proportion.y)
-                withMaxResultSize(photoRequest.maxResultWidth, photoRequest.maxResultHeight)
-            }).getIntent(activity),
-            requestCode = CROP_IMAGE,
-            callback = { requestCode, resultCode, data ->
-                if(resultCode != Activity.RESULT_OK || data == null) {
-                    if(data != null) {
-                        nativePickerCallback.onMediaPickCanceled(UCrop.getError(data)?.toString())
-                    } else {
-                        nativePickerCallback.onMediaPickCanceled("Error while cropping image.")
+        CommonUtils.getImageDimensions(activity, uri) { imageDimensions ->
+            proxy(
+                intent = UCrop.of(
+                    uri,
+                    Uri.fromFile(File(activity.cacheDir, "cropped$fileName"))
+                ).withOptions(getDefaultCropOptions().apply {
+                    photoRequest.nextButtonString?.let {
+                        setNextButtonText(it)
                     }
-                    return@proxy
-                }
-                val result = UCrop.getOutput(data)
-                nativePickerCallback.onMediaPicked(
-                    PickPhotoResponse(
-                        pickMediaRequest,
-                        result!!.path!!,
-                        PickPhotoResponse.PhotoMetaData(
-                            UCrop.getOutputImageWidth(data),
-                            UCrop.getOutputImageHeight(data),
-                            fileName,
-                            result.toFile().length().toString()
+
+                    if (photoRequest.proportion == Photo.Proportion.POST) {
+                        when {
+                            imageDimensions.width > imageDimensions.height -> {
+                                //if Landscape
+                                withAspectRatio(4F, 3F)
+                            }
+                            imageDimensions.width < imageDimensions.height -> {
+                                //if Portrait
+                                withAspectRatio(3F, 4F)
+                            }
+                            else -> {
+                                //else Original
+                                useSourceImageAspectRatio()
+                            }
+                        }
+                    } else {
+                        withAspectRatio(photoRequest.proportion.x, photoRequest.proportion.y)
+                    }
+
+                    setMaxScaleMultiplier(photoRequest.maxScaleMultiplier)
+                    setCompressionQuality(photoRequest.compressionQuality)
+                    setMaxSizeBytes(photoRequest.maxFileSizeBytes)
+                    setMaxBitmapSize(photoRequest.maxBitmapSize)
+                }).getIntent(activity),
+                requestCode = CROP_IMAGE,
+                callback = { _, resultCode, data ->
+                    if (resultCode != Activity.RESULT_OK || data == null) {
+                        if (data != null) {
+                            nativePickerCallback.onMediaPickCanceled(UCrop.getError(data)?.toString())
+                        } else {
+                            nativePickerCallback.onMediaPickCanceled("Error while cropping image.")
+                        }
+                        return@proxy
+                    }
+                    val result = UCrop.getOutput(data)
+                    CommonUtils.getImageDimensions(activity, result!!) { imageDimensions ->
+                        nativePickerCallback.onMediaPicked(
+                            PickPhotoResponse(
+                                pickMediaRequest,
+                                result.path!!,
+                                PickPhotoResponse.PhotoMetaData(
+                                    width = imageDimensions.width,
+                                    height = imageDimensions.height,
+                                    fileName = fileName,
+                                    fileSizeBytes = result.toFile().length().toString()
+                                )
+                            )
                         )
-                    )
-                )
-            }
-        )
+                    }
+
+                }
+            )
+        }
     }
 
     private fun getDefaultCropOptions(): UCrop.Options {
@@ -238,8 +260,8 @@ class NativePicker(
             setRootViewBackgroundColor(Color.WHITE)
             setDimmedLayerColor(Color.parseColor("#CCFFFFFF"))
             setCropFrameColor(ContextCompat.getColor(activity, R.color.accent))
-            setToolbarWidgetColor(ContextCompat.getColor(activity, R.color.accent))
-            setAllowedGestures(UCropActivity.ALL, UCropActivity.ALL, UCropActivity.ALL)
+            setToolbarWidgetColor(ContextCompat.getColor(activity, R.color.ucrop_color_black))
+            setAllowedGestures(UCropActivity.SCALE, UCropActivity.SCALE, UCropActivity.SCALE)
             setActiveControlsWidgetColor(ContextCompat.getColor(activity, R.color.accent))
         }
     }
@@ -253,7 +275,7 @@ class NativePicker(
     }
 
 
-    fun pickMedia() {
+    private fun pickMedia() {
         Dexter.withActivity(activity)
             .withPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
             .withListener(object : PermissionListener {

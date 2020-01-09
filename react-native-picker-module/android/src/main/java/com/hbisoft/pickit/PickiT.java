@@ -3,6 +3,7 @@ package com.hbisoft.pickit;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.net.Uri;
+import android.os.Build;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 
@@ -21,7 +22,8 @@ public class PickiT implements CallBackTask{
         this.pickiTCallbacks = listener;
     }
 
-    public void getPath(Uri uri, int APILevel){
+    public void getPath(Uri uri){
+        int APILevel = Build.VERSION.SDK_INT;
         String returnedPath;
         if (APILevel>=19){
             // Drive file was selected
@@ -177,7 +179,7 @@ public class PickiT implements CallBackTask{
         File folder = context.getExternalFilesDir("Temp");
         if (folder != null) {
             if (deleteDirectory(folder)){
-                Log.i("PickiT "," deleteDirectory was called");
+                //Log.i("PickiT "," deleteDirectory was called");
             }
         }
     }
@@ -194,7 +196,7 @@ public class PickiT implements CallBackTask{
                 } else {
                     boolean wasSuccessful = file.delete();
                     if (wasSuccessful) {
-                        Log.i("Deleted ", "successfully");
+                        //Log.i("Deleted ", "successfully");
                     }
                 }
             }
