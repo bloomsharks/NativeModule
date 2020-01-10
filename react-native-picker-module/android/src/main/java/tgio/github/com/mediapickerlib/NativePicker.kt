@@ -33,7 +33,7 @@ class NativePicker(
     private fun launchPhotoPicker() {
         proxy(
             intent = Intent.createChooser(
-                Intent(Intent.ACTION_GET_CONTENT, Photo.INTENT_URI)
+                Intent(Intent.ACTION_OPEN_DOCUMENT, Photo.INTENT_URI)
                     .setType(Photo.INTENT_TYPE)
                     .addCategory(Intent.CATEGORY_OPENABLE)
                     .putExtra(Intent.EXTRA_MIME_TYPES, Photo.MIME_TYPES),
@@ -66,7 +66,7 @@ class NativePicker(
     private fun launchFilesPicker() {
         proxy(
             intent = Intent.createChooser(
-                Intent(Intent.ACTION_GET_CONTENT)
+                Intent(Intent.ACTION_OPEN_DOCUMENT)
                     .setType(Files.INTENT_TYPE),
                 "Pick File"
             ),
@@ -125,7 +125,7 @@ class NativePicker(
     private fun launchVideoPicker() {
         proxy(
             intent = Intent.createChooser(
-                Intent(Intent.ACTION_GET_CONTENT, Video.INTENT_URI)
+                Intent(Intent.ACTION_OPEN_DOCUMENT, Video.INTENT_URI)
                     .setType(Video.INTENT_TYPE)
                     .addCategory(Intent.CATEGORY_OPENABLE)
                     .putExtra(Intent.EXTRA_MIME_TYPES, Video.MIME_TYPES),
