@@ -1,17 +1,6 @@
 import React from 'react';
 import PickerModule from 'react-native-picker-module';
 import {View, Text, Image, Button} from 'react-native';
-import {
-  MediaTypeFile,
-  MediaTypePhoto,
-  MediaTypeVideo,
-  PHOTO_COVER,
-  PHOTO_CUSTOM,
-  PHOTO_POST,
-  PHOTO_PROFILE,
-  POST_TALL,
-  POST_WIDE,
-} from './src/MediaPickOptions';
 
 function Separator() {
   return (
@@ -44,13 +33,13 @@ export default class App extends React.Component {
             paddingHorizontal: 24,
           }}>
           <Separator />
-          <Text>Uri: {JSON.stringify(this.state.pickResponse)}</Text>
+          <Text>Result: {JSON.stringify(this.state.pickResponse)}</Text>
           <Separator />
           <Button
             onPress={() => {
               PickerModule.pickMedia({
-                mediaType: MediaTypePhoto,
-                proportion: PHOTO_PROFILE,
+                mediaType: 'photo',
+                proportion: 'profile',
                 nextButtonString: 'Next',
               })
                 .then(result => {
@@ -66,8 +55,8 @@ export default class App extends React.Component {
           <Button
             onPress={() => {
               PickerModule.pickMedia({
-                mediaType: MediaTypePhoto,
-                proportion: PHOTO_COVER,
+                mediaType: 'photo',
+                proportion: 'cover',
               })
                 .then(result => {
                   this.setState({pickResponse: result});
@@ -82,9 +71,9 @@ export default class App extends React.Component {
           <Button
             onPress={() => {
               PickerModule.pickMedia({
-                mediaType: MediaTypePhoto,
-                proportion: PHOTO_POST,
-                  PHOTO_MAX_BITMAP_SIZE: 10000,
+                mediaType: 'photo',
+                proportion: 'post',
+                maxFileSizeBytes: 10000,
               })
                 .then(result => {
                   this.setState({pickResponse: result});
@@ -99,10 +88,10 @@ export default class App extends React.Component {
           <Button
             onPress={() => {
               PickerModule.pickMedia({
-                mediaType: MediaTypePhoto,
-                proportion: PHOTO_CUSTOM,
-                PHOTO_X: '37.0',
-                PHOTO_Y: '14.0',
+                mediaType: 'photo',
+                proportion: 'custom',
+                keyX: '37.0',
+                keyY: '14.0',
               })
                 .then(result => {
                   this.setState({pickResponse: result});
@@ -117,7 +106,7 @@ export default class App extends React.Component {
           <Button
             onPress={() => {
               PickerModule.pickMedia({
-                mediaType: MediaTypeVideo,
+                mediaType: 'video',
               })
                 .then(result => {
                   this.setState({pickResponse: result});
@@ -132,7 +121,7 @@ export default class App extends React.Component {
           <Button
             onPress={() => {
               PickerModule.pickMedia({
-                mediaType: MediaTypeFile,
+                mediaType: 'file',
               })
                 .then(result => {
                   this.setState({pickResponse: result});

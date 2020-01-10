@@ -45,6 +45,7 @@ data class PickVideoResponse(
         map.putInt("fileSize", metadata.fileSizeBytes?.toInt() ?: 0)
         map.putInt("durationMillis", metadata.durationMillis?.toInt() ?: 0)
         map.putString("thumbnail", metadata.thumbnail)
+        map.putString("contentUri", metadata.contentUri)
         return map
     }
     data class VideoMetaData(
@@ -53,7 +54,8 @@ data class PickVideoResponse(
         val fileName: String? = null,
         val fileSizeBytes: String? = null,
         val durationMillis: String? = null,
-        val thumbnail: String? = null
+        val thumbnail: String? = null,
+        val contentUri: String? = null
     )
 }
 
