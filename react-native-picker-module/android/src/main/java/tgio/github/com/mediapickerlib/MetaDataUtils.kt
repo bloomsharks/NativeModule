@@ -3,6 +3,7 @@ package tgio.github.com.mediapickerlib
 import android.content.Context
 import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
+import android.net.Uri
 import androidx.annotation.IntRange
 import tgio.github.com.mediapickerlib.PickVideoResponse
 import java.io.File
@@ -14,7 +15,8 @@ object MetaDataUtils {
     fun getVideoMetaData(
         context: Context, filePath: String,
         @IntRange(from = 10, to = 100) thumbnailQuality: Int,
-        originalName: String
+        originalName: String,
+        contentUri: Uri?
     ): PickVideoResponse.VideoMetaData {
         val retriever = MediaMetadataRetriever()
         retriever.setDataSource(filePath)
@@ -45,7 +47,8 @@ object MetaDataUtils {
             height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT),
             width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH),
             fileName = originalName,
-            fileSizeBytes = File(filePath).length().toString()
+            fileSizeBytes = File(filePath).length().toString(),
+            contentUri = contentUri.toString()
         )
     }
 }

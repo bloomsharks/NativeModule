@@ -133,6 +133,7 @@ class NativePicker(
             ),
             requestCode = PickMediaRequest.REQUEST_VIDEO,
             callback = { _, resultCode, data ->
+                println("pckit data = [${data}]")
                 if (data?.data == null || resultCode != Activity.RESULT_OK) {
                     nativePickerCallback.onMediaPickCanceled("Picking video canceled.")
                     return@proxy
@@ -167,7 +168,8 @@ class NativePicker(
                                     activity,
                                     filePath = path,
                                     thumbnailQuality = 90,
-                                    originalName = originalFileName
+                                    originalName = originalFileName,
+                                    contentUri = data.data
                                 )
                             )
                         )

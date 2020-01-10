@@ -1,14 +1,22 @@
-README
-======
+#### Options for ```mediaType```
+```photo, video, file```
 
-If you want to publish the lib as a maven dependency, follow these steps before publishing a new version to npm:
+#### Options for ```proportion```
+```profile, cover, post, custom```
 
-1. Be sure to have the Android [SDK](https://developer.android.com/studio/index.html) and [NDK](https://developer.android.com/ndk/guides/index.html) installed
-2. Be sure to have a `local.properties` file in this folder that points to the Android SDK and NDK
-```
-ndk.dir=/Users/{username}/Library/Android/sdk/ndk-bundle
-sdk.dir=/Users/{username}/Library/Android/sdk
-```
-3. Delete the `maven` folder
-4. Run `./gradlew installArchives`
-5. Verify that latest set of generated files is in the maven folder with the correct version number
+#### Options for custom photo ratio [FLOAT] default 0
+```keyX, keyY```
+
+#### If value is more than 0, it will ignore ```compressionQuality``` and use backing compression, starting from 100 down to 0, if result size exceeds given number
+#### Option ```maxFileSizeBytes``` [INT] default 0
+
+#### Option ```nextButtonString``` [String]
+
+#### Option ```compressionQuality``` [INT] default 60, range from 5 to 100
+
+#### max zoom from 1.0 to 10.0
+#### Option ```maxScaleMultiplier``` [FLOAT] default 10.0
+
+#### Max size for both width and height of bitmap that will be decoded from an input Uri and used in the view
+#### Option ```maxBitmapSize``` [INT] default 10000
+
