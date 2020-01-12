@@ -1,14 +1,10 @@
 package tgio.github.com.mediapickerlib
 
+import android.content.Intent
 import android.provider.MediaStore
 
 sealed class PickMediaRequest {
-    companion object {
-        const val REQUEST_PHOTO = 1337
-        const val REQUEST_VIDEO = 1338
-        const val REQUEST_FILE = 1339
-    }
-
+    abstract fun getIntent(): Intent
     open var nextButtonString: String? = null
 }
 
@@ -26,24 +22,43 @@ data class Photo(
         data class CUSTOM(override val x: Float, override val y: Float) : Proportion(x, y)
     }
 
-    companion object {
-        val INTENT_URI = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-        val INTENT_TYPE = "image/*"
-        val MIME_TYPES = arrayOf("image/jpeg", "image/png", "image/gif")
+    override fun getIntent(): Intent {
+        return Intent.createChooser(
+            Intent(
+                Intent.ACTION_OPEN_DOCUMENT,
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+            ).setType("image/*")
+                .addCategory(Intent.CATEGORY_OPENABLE)
+                .putExtra(
+                    Intent.EXTRA_MIME_TYPES,
+                    arrayOf("image/jpeg", "image/png", "image/gif")
+                ),
+            "Pick Photo"
+        )
     }
 }
 
 class Video : PickMediaRequest() {
-    companion object {
-        val INTENT_URI = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-        val INTENT_TYPE = "video/*"
-        val MIME_TYPES = arrayOf("video/mp4")
+    override fun getIntent(): Intent {
+        return Intent.createChooser(
+            Intent(
+                Intent.ACTION_OPEN_DOCUMENT,
+                MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+            ).setType("video/*")
+                .addCategory(Intent.CATEGORY_OPENABLE)
+                .putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("video/mp4")),
+            "Pick Video"
+        )
     }
 }
 
 class Files : PickMediaRequest() {
-    companion object {
-        val INTENT_TYPE = "*/*"
+    override fun getIntent(): Intent {
+        return Intent.createChooser(
+            Intent(Intent.ACTION_OPEN_DOCUMENT)
+                .setType("*/*"),
+            "Pick File"
+        )
     }
 }
 

@@ -31,52 +31,66 @@ class NativePicker(
         pickMedia()
     }
 
-    private fun launchPhotoPicker() {
-        proxy(
-            intent = Intent.createChooser(
-                Intent(Intent.ACTION_OPEN_DOCUMENT, Photo.INTENT_URI)
-                    .setType(Photo.INTENT_TYPE)
-                    .addCategory(Intent.CATEGORY_OPENABLE)
-                    .putExtra(Intent.EXTRA_MIME_TYPES, Photo.MIME_TYPES),
-                "Pick Photo"
-            ),
-            requestCode = PickMediaRequest.REQUEST_PHOTO
-        ) { requestCode, resultCode, data ->
-            if (resultCode == Activity.RESULT_OK && requestCode == PickMediaRequest.REQUEST_PHOTO && data?.data != null) {
-                launchCrop(data.data!!)
-            } else {
-                promise.reject(Error.CANCELED)
-            }
-        }
-    }
-
     private fun proxy(
         intent: Intent,
-        requestCode: Int,
-        callback: (requestCode: Int, resultCode: Int, data: Intent?) -> Unit
+        requestCode: Int
     ) {
         Proxy.with(context = activity.applicationContext)
-            .listener { _requestCode, resultCode, data ->
-                callback.invoke(_requestCode, resultCode, data)
-            }.launch(
-                intent,
+            .listener(this::onActivityResult)
+            .launch(
+                intent = intent,
                 requestCode = requestCode
             )
     }
 
-    private fun launchFilesPicker() {
-        proxy(
-            intent = Intent.createChooser(
-                Intent(Intent.ACTION_OPEN_DOCUMENT)
-                    .setType(Files.INTENT_TYPE),
-                "Pick File"
-            ),
-            requestCode = PickMediaRequest.REQUEST_FILE,
-            callback = { _, resultCode, data ->
-                if (data?.data == null || resultCode != Activity.RESULT_OK) {
+    private fun launchPhotoPicker() = proxy(
+        intent = pickMediaRequest.getIntent(),
+        requestCode = REQUEST_PICK_PHOTO
+    )
+
+    private fun launchFilesPicker() = proxy(
+        intent = pickMediaRequest.getIntent(),
+        requestCode = REQUEST_PICK_FILE
+    )
+
+    private fun launchCrop(uri: Uri) {
+        val fileName = CommonUtils.getFileName(uri.lastPathSegment!!)
+        val photoRequest = pickMediaRequest as Photo
+        CommonUtils.getImageDimensions(activity, uri) { imageDimensions ->
+            proxy(
+                intent = UCrop.of(
+                    uri,
+                    Uri.fromFile(File(activity.cacheDir, fileName))
+                ).withOptions(getDefaultCropOptions(photoRequest, imageDimensions))
+                    .getIntent(activity),
+                requestCode = REQUEST_CODE_CROP_IMAGE
+            )
+        }
+    }
+
+    private fun launchVideoPicker() = proxy(
+        intent = pickMediaRequest.getIntent(),
+        requestCode = REQUEST_PICK_VIDEO
+    )
+
+    private fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (resultCode != Activity.RESULT_OK || data == null) {
+            if (data != null) {
+                promise.reject(UCrop.getError(data))
+            } else {
+                promise.reject(Error.CANCELED)
+            }
+            return
+        }
+        when (requestCode) {
+            REQUEST_PICK_PHOTO -> {
+                if (resultCode == Activity.RESULT_OK) {
+                    launchCrop(data.data!!)
+                } else {
                     promise.reject(Error.CANCELED)
-                    return@proxy
                 }
+            }
+            REQUEST_PICK_FILE -> {
                 PickiT(activity, object : PickiTCallbacks {
                     override fun PickiTonCompleteListener(
                         path: String?,
@@ -88,7 +102,7 @@ class NativePicker(
                         Reason: String?
                     ) {
                         if (!wasSuccessful) {
-                            promise.reject(Error.CANCELED)
+                            promise.reject(CustomError(-2000, Reason ?: "Unknown"))
                             return
                         }
                         val file = File(path!!)
@@ -114,25 +128,7 @@ class NativePicker(
                     it.getPath(data.data)
                 }
             }
-        )
-    }
-
-    private fun launchVideoPicker() {
-        proxy(
-            intent = Intent.createChooser(
-                Intent(Intent.ACTION_OPEN_DOCUMENT, Video.INTENT_URI)
-                    .setType(Video.INTENT_TYPE)
-                    .addCategory(Intent.CATEGORY_OPENABLE)
-                    .putExtra(Intent.EXTRA_MIME_TYPES, Video.MIME_TYPES),
-                "Pick Video"
-            ),
-            requestCode = PickMediaRequest.REQUEST_VIDEO,
-            callback = { _, resultCode, data ->
-                println("pckit data = [${data}]")
-                if (data?.data == null || resultCode != Activity.RESULT_OK) {
-                    promise.reject(Error.CANCELED)
-                    return@proxy
-                }
+            REQUEST_PICK_VIDEO -> {
                 PickiT(activity, object : PickiTCallbacks {
                     override fun PickiTonCompleteListener(
                         path: String?,
@@ -144,7 +140,7 @@ class NativePicker(
                         Reason: String?
                     ) {
                         if (!wasSuccessful) {
-                            promise.reject(Error.CANCELED)
+                            promise.reject(CustomError(-2000, Reason ?: "Unknown"))
                             return
                         }
                         promise.resolve(
@@ -168,14 +164,33 @@ class NativePicker(
                     it.getPath(data.data)
                 }
             }
-        )
+            REQUEST_CODE_CROP_IMAGE -> {
+                val result = UCrop.getOutput(data)
+                CommonUtils.getImageDimensions(activity, result!!) { imageDimensions ->
+                    promise.resolve(
+                        ObjectMapper.prepareResponse(
+                            PickPhotoResponse(
+                                pickMediaRequest,
+                                result.path!!,
+                                PickPhotoResponse.PhotoMetaData(
+                                    width = imageDimensions.width,
+                                    height = imageDimensions.height,
+                                    fileName = CommonUtils.getFileName(result.lastPathSegment!!),
+                                    fileSizeBytes = result.toFile().length().toString()
+                                )
+                            )
+                        )
+                    )
+                }
+            }
+        }
     }
 
-    private fun addCustomFlagsForCropIntent(
+    private fun getDefaultCropOptions(
         photoRequest: Photo,
         imageDimensions: Size
     ): UCrop.Options {
-        return getDefaultCropOptions().apply {
+        return UCrop.Options().apply {
             photoRequest.nextButtonString?.let {
                 setNextButtonText(it)
             }
@@ -203,54 +218,7 @@ class NativePicker(
             setCompressionQuality(photoRequest.compressionQuality)
             setMaxSizeBytes(photoRequest.maxFileSizeBytes)
             setMaxBitmapSize(photoRequest.maxBitmapSize)
-        }
-    }
 
-    private fun launchCrop(uri: Uri) {
-        val fileName = CommonUtils.getFileName(uri.lastPathSegment!!)
-        val photoRequest = pickMediaRequest as Photo
-        CommonUtils.getImageDimensions(activity, uri) { imageDimensions ->
-            proxy(
-                intent = UCrop.of(
-                    uri,
-                    Uri.fromFile(File(activity.cacheDir, "cropped$fileName"))
-                ).withOptions(
-                    addCustomFlagsForCropIntent(photoRequest, imageDimensions)
-                ).getIntent(activity),
-                requestCode = REQUEST_CODE_CROP_IMAGE,
-                callback = { _, resultCode, data ->
-                    if (resultCode != Activity.RESULT_OK || data == null) {
-                        if (data != null) {
-                            promise.reject(UCrop.getError(data))
-                        } else {
-                            promise.reject(Error.CANCELED)
-                        }
-                        return@proxy
-                    }
-                    val result = UCrop.getOutput(data)
-                    CommonUtils.getImageDimensions(activity, result!!) { imageDimensions ->
-                        promise.resolve(
-                            ObjectMapper.prepareResponse(
-                                PickPhotoResponse(
-                                    pickMediaRequest,
-                                    result.path!!,
-                                    PickPhotoResponse.PhotoMetaData(
-                                        width = imageDimensions.width,
-                                        height = imageDimensions.height,
-                                        fileName = fileName,
-                                        fileSizeBytes = result.toFile().length().toString()
-                                    )
-                                )
-                            )
-                        )
-                    }
-                }
-            )
-        }
-    }
-
-    private fun getDefaultCropOptions(): UCrop.Options {
-        return UCrop.Options().apply {
             setShowCropGrid(false)
             setToolbarTitle("Crop")
             setNextButtonText("Done")

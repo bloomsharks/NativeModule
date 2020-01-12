@@ -21,4 +21,7 @@ const val PHOTO_POST = "post"
 const val PHOTO_CUSTOM = "custom"
 
 
-const val REQUEST_CODE_CROP_IMAGE = 32421
+const val REQUEST_CODE_CROP_IMAGE = 1336
+const val REQUEST_PICK_PHOTO = 1337
+const val REQUEST_PICK_VIDEO = 1338
+const val REQUEST_PICK_FILE = 1339
