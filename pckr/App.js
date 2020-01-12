@@ -40,13 +40,17 @@ export default class App extends React.Component {
               PickerModule.pickMedia({
                 mediaType: 'photo',
                 proportion: 'profile',
-                nextButtonString: 'Next',
               })
                 .then(result => {
                   this.setState({pickResponse: result});
                 })
                 .catch(error => {
-                  console.log(error);
+                  this.setState({
+                    pickResponse: {
+                      code: error.code,
+                      message: error.message,
+                    },
+                  });
                 });
             }}
             title="Pick Square Image"
@@ -62,7 +66,12 @@ export default class App extends React.Component {
                   this.setState({pickResponse: result});
                 })
                 .catch(error => {
-                  console.log(error);
+                  this.setState({
+                    pickResponse: {
+                      code: error.code,
+                      message: error.message,
+                    },
+                  });
                 });
             }}
             title="Pick Cover Image"
@@ -79,7 +88,12 @@ export default class App extends React.Component {
                   this.setState({pickResponse: result});
                 })
                 .catch(error => {
-                  console.log(error);
+                  this.setState({
+                    pickResponse: {
+                      code: error.code,
+                      message: error.message,
+                    },
+                  });
                 });
             }}
             title="Pick Post Image"
@@ -97,7 +111,12 @@ export default class App extends React.Component {
                   this.setState({pickResponse: result});
                 })
                 .catch(error => {
-                  console.log(error);
+                  this.setState({
+                    pickResponse: {
+                      code: error.code,
+                      message: error.message,
+                    },
+                  });
                 });
             }}
             title="Pick Custom Image"
@@ -112,7 +131,12 @@ export default class App extends React.Component {
                   this.setState({pickResponse: result});
                 })
                 .catch(error => {
-                  console.log(error);
+                  this.setState({
+                    pickResponse: {
+                      code: error.code,
+                      message: error.message,
+                    },
+                  });
                 });
             }}
             title="Pick Video"
@@ -127,7 +151,12 @@ export default class App extends React.Component {
                   this.setState({pickResponse: result});
                 })
                 .catch(error => {
-                  console.log(error);
+                  this.setState({
+                    pickResponse: {
+                      code: error.code,
+                      message: error.message,
+                    },
+                  });
                 });
             }}
             title="Pick File"

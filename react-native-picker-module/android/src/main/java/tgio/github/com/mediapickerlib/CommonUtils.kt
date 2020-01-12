@@ -43,4 +43,8 @@ object CommonUtils {
             }
         }
     }
+
+    fun getFileName(path: String): String {
+        return path.substring(path.lastIndexOf("/") + 1)
+    }
 }

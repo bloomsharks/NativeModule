@@ -12,24 +12,23 @@ class NativeModule(private val reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun pickMedia(options: ReadableMap?, promise: Promise) {
+        if(currentActivity == null) {
+            promise.reject(Error.NULL_ACTIVITY)
+            return
+        }
         if(options == null) {
-            promise.reject("-1", "options is missing.")
+            promise.reject(Error.MISSING_OPTIONS)
+            return
+        }
+        val pickMediaRequest = try {
+            ObjectMapper.constructMediaPickRequest(options)
+        } catch (e: Exception) {
+            promise.reject(CustomError(message = e.message ?: "Unknown"))
             return
         }
         nativePicker = NativePicker(
             activity = currentActivity!!,
-            pickMediaRequest = ObjectMapper.constructMediaPickRequest(options),
-            nativePickerCallback = object : NativePickerCallback {
-                override fun onMediaPicked(pickMediaResponse: PickMediaResponse) {
-                    promise.resolve(ObjectMapper.prepareResponse(pickMediaResponse))
-                }
-
-                override fun onMediaPickCanceled(reason: String?) {
-                    promise.reject("-1", reason)
-                }
-
-                override fun onDownloadProgress(progress: Int) {
-                }
-            })
+            pickMediaRequest = pickMediaRequest,
+            promise = promise)
     }
 }
