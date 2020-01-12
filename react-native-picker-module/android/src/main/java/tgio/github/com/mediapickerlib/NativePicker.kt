@@ -124,9 +124,7 @@ class NativePicker(
                         )
                     }
 
-                }).also {
-                    it.getPath(data.data)
-                }
+                }).getPath(data.data)
             }
             REQUEST_PICK_VIDEO -> {
                 PickiT(activity, object : PickiTCallbacks {
@@ -160,9 +158,7 @@ class NativePicker(
                         )
                     }
 
-                }).also {
-                    it.getPath(data.data)
-                }
+                }).getPath(data.data)
             }
             REQUEST_CODE_CROP_IMAGE -> {
                 val result = UCrop.getOutput(data)
