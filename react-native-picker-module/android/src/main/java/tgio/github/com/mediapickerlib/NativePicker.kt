@@ -19,6 +19,7 @@ import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.single.PermissionListener
 import com.yalantis.ucrop.UCrop
 import com.yalantis.ucrop.UCropActivity
+import tgio.github.com.mediapickerlib.MetaDataUtils.getFileNameAndSize
 import tgio.github.com.mediapickerlib.proxy.Proxy
 import java.io.File
 
@@ -91,93 +92,65 @@ class NativePicker(
                 }
             }
             REQUEST_PICK_FILE -> {
-                PickiT(activity, object : PickiTCallbacks {
-                    override fun PickiTonCompleteListener(
-                        path: String?,
-                        wasDriveFile: Boolean,
-                        wasUnknownProvider: Boolean,
-                        wasSuccessful: Boolean,
-                        originalFileName: String,
-                        originalFileSize: Int,
-                        Reason: String?
-                    ) {
-                        if (!wasSuccessful) {
-                            promise.reject(CustomError(-2000, Reason ?: "Unknown"))
-                            return
-                        }
-                        val file = File(path!!)
-                        var fileSize = originalFileSize.toString()
-                        if (originalFileSize == 0) {
-                            fileSize = file.length().toString()
-                        }
-                        promise.resolve(
-                            ObjectMapper.prepareResponse(
-                                PickFileResponse(
-                                    mediaRequest = pickMediaRequest,
-                                    uri = path,
-                                    metadata = PickFileResponse.FileMetaData(
-                                        fileName = originalFileName,
-                                        fileSizeBytes = fileSize
-                                    )
-                                )
-                            )
-                        )
-                    }
-
-                }).getPath(data.data)
-            }
-            REQUEST_PICK_VIDEO -> {
-                PickiT(activity, object : PickiTCallbacks {
-                    override fun PickiTonCompleteListener(
-                        path: String?,
-                        wasDriveFile: Boolean,
-                        wasUnknownProvider: Boolean,
-                        wasSuccessful: Boolean,
-                        originalFileName: String,
-                        originalFileSize: Int,
-                        Reason: String?
-                    ) {
-                        if (!wasSuccessful) {
-                            promise.reject(CustomError(-2000, Reason ?: "Unknown"))
-                            return
-                        }
-                        promise.resolve(
-                            ObjectMapper.prepareResponse(
-                                PickVideoResponse(
-                                    mediaRequest = pickMediaRequest,
-                                    uri = path!!,
-                                    metadata = MetaDataUtils.getVideoMetaData(
-                                        activity,
-                                        filePath = path,
-                                        thumbnailQuality = 90,
-                                        originalName = originalFileName,
-                                        contentUri = data.data
-                                    )
-                                )
-                            )
-                        )
-                    }
-
-                }).getPath(data.data)
-            }
-            REQUEST_CODE_CROP_IMAGE -> {
-                val result = UCrop.getOutput(data)
-                CommonUtils.getImageDimensions(activity, result!!) { imageDimensions ->
+                val result = data.data
+                if(result == null) {
+                    promise.reject(Error.CANCELED)
+                } else {
+                    val (size, name) = getFileNameAndSize(activity, result)
                     promise.resolve(
                         ObjectMapper.prepareResponse(
-                            PickPhotoResponse(
-                                pickMediaRequest,
-                                result.path!!,
-                                PickPhotoResponse.PhotoMetaData(
-                                    width = imageDimensions.width,
-                                    height = imageDimensions.height,
-                                    fileName = CommonUtils.getFileName(result.lastPathSegment!!),
-                                    fileSizeBytes = result.toFile().length().toString()
+                            PickFileResponse(
+                                mediaRequest = pickMediaRequest,
+                                uri = result.toString(),
+                                metadata = PickFileResponse.FileMetaData(
+                                    fileName = name,
+                                    fileSizeBytes = size
                                 )
                             )
                         )
                     )
                 }
+            }
+            REQUEST_PICK_VIDEO -> {
+                val result = data.data
+                if(result == null) {
+                    promise.reject(Error.CANCELED)
+                } else {
+                    val (size, name) = getFileNameAndSize(activity, result)
+                    promise.resolve(
+                        ObjectMapper.prepareResponse(
+                            PickVideoResponse(
+                                mediaRequest = pickMediaRequest,
+                                uri = result.toString(),
+                                metadata = MetaDataUtils.getVideoMetaData(
+                                    activity,
+                                    filePath = result,
+                                    thumbnailQuality = 90,
+                                    originalName = name,
+                                    fileSizeBytes = size
+                                )
+                            )
+                        )
+                    )
+                }
+            }
+            REQUEST_CODE_CROP_IMAGE -> {
+                val result = UCrop.getOutput(data)
+                val (size, name) = getFileNameAndSize(activity, result!!)
+                promise.resolve(
+                    ObjectMapper.prepareResponse(
+                        PickPhotoResponse(
+                            mediaRequest = pickMediaRequest,
+                            uri = result.toString(),
+                            metadata = PickPhotoResponse.PhotoMetaData(
+                                width = UCrop.getOutputImageWidth(data),
+                                height = UCrop.getOutputImageHeight(data),
+                                fileName = name,
+                                fileSizeBytes = size
+                            )
+                        )
+                    )
+                )
             }
         }
     }

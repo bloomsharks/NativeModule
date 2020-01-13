@@ -1,6 +1,7 @@
 package tgio.github.com.mediapickerlib
 
 import com.facebook.react.bridge.*
+import java.util.*
 
 class NativeModule(private val reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
@@ -10,8 +11,19 @@ class NativeModule(private val reactContext: ReactApplicationContext) :
         return "PickerModule"
     }
 
+    init {
+        deleteOldCachedFiles()
+    }
+
+    private fun deleteOldCachedFiles() {
+        val cal = Calendar.getInstance()
+        cal.add(Calendar.DAY_OF_MONTH, -1)
+        CacheUtils.deleteFiles(reactContext.cacheDir, cal.time)
+    }
+
     @ReactMethod
     fun pickMedia(options: ReadableMap?, promise: Promise) {
+        deleteOldCachedFiles()
         if(currentActivity == null) {
             promise.reject(Error.NULL_ACTIVITY)
             return

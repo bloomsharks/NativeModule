@@ -4,8 +4,9 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
 import android.net.Uri
+import android.provider.OpenableColumns
 import androidx.annotation.IntRange
-import tgio.github.com.mediapickerlib.PickVideoResponse
+import androidx.core.net.toFile
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
@@ -13,13 +14,14 @@ import java.util.*
 
 object MetaDataUtils {
     fun getVideoMetaData(
-        context: Context, filePath: String,
+        context: Context,
+        filePath: Uri,
         @IntRange(from = 10, to = 100) thumbnailQuality: Int,
         originalName: String,
-        contentUri: Uri?
+        fileSizeBytes: Long
     ): PickVideoResponse.VideoMetaData {
         val retriever = MediaMetadataRetriever()
-        retriever.setDataSource(filePath)
+        retriever.setDataSource(context, filePath)
         val image = retriever.getFrameAtTime(
             1000000,
             MediaMetadataRetriever.OPTION_CLOSEST_SYNC
@@ -47,8 +49,34 @@ object MetaDataUtils {
             height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT),
             width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH),
             fileName = originalName,
-            fileSizeBytes = File(filePath).length().toString(),
-            contentUri = contentUri.toString()
+            fileSizeBytes = fileSizeBytes.toString()
         )
+    }
+
+    fun getFileNameAndSize(context: Context, mUri: Uri): Pair<Long, String> {
+        var size = 0L
+        var originalFileName = ""
+        when (mUri.scheme) {
+            "content" -> {
+                context.contentResolver.query(mUri, null, null, null, null).use { returnCursor ->
+                    if (returnCursor != null && returnCursor.moveToFirst()) {
+                        val nameIndex: Int =
+                            returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                        val sizeIndex: Int = returnCursor.getColumnIndex(OpenableColumns.SIZE)
+                        size = returnCursor.getLong(sizeIndex)
+                        originalFileName = returnCursor.getString(nameIndex)
+                    }
+                }
+            }
+            "file" -> {
+                val ff = mUri.toFile()
+                size = ff.length()
+                originalFileName = CommonUtils.getFileName(ff.path)
+            }
+            else -> {
+                println("getFileNameAndSize($mUri) >>> unknown scheme ${mUri.scheme}")
+            }
+        }
+        return Pair(size, originalFileName)
     }
 }
