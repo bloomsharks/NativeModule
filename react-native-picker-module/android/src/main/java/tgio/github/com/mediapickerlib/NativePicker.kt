@@ -2,15 +2,14 @@ package tgio.github.com.mediapickerlib
 
 import android.Manifest
 import android.app.Activity
+import android.content.ContentResolver
 import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
 import android.util.Size
+import android.webkit.MimeTypeMap
 import androidx.core.content.ContextCompat
-import androidx.core.net.toFile
 import com.facebook.react.bridge.Promise
-import com.hbisoft.pickit.PickiT
-import com.hbisoft.pickit.PickiTCallbacks
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionDeniedResponse
@@ -22,6 +21,7 @@ import com.yalantis.ucrop.UCropActivity
 import tgio.github.com.mediapickerlib.MetaDataUtils.getFileNameAndSize
 import tgio.github.com.mediapickerlib.proxy.Proxy
 import java.io.File
+
 
 class NativePicker(
     private val activity: Activity,
@@ -104,7 +104,8 @@ class NativePicker(
                                 uri = result.toString(),
                                 metadata = PickFileResponse.FileMetaData(
                                     fileName = name,
-                                    fileSizeBytes = size
+                                    fileSizeBytes = size,
+                                    mimeType = CommonUtils.getMimeType(activity, result)
                                 )
                             )
                         )
@@ -137,6 +138,8 @@ class NativePicker(
             REQUEST_CODE_CROP_IMAGE -> {
                 val result = UCrop.getOutput(data)
                 val (size, name) = getFileNameAndSize(activity, result!!)
+
+
                 promise.resolve(
                     ObjectMapper.prepareResponse(
                         PickPhotoResponse(
@@ -146,7 +149,8 @@ class NativePicker(
                                 width = UCrop.getOutputImageWidth(data),
                                 height = UCrop.getOutputImageHeight(data),
                                 fileName = name,
-                                fileSizeBytes = size
+                                fileSizeBytes = size,
+                                mimeType = "image/jpeg"
                             )
                         )
                     )

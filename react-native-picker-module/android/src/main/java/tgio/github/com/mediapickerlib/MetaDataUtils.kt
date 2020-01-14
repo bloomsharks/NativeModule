@@ -49,7 +49,8 @@ object MetaDataUtils {
             height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT),
             width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH),
             fileName = originalName,
-            fileSizeBytes = fileSizeBytes.toString()
+            fileSizeBytes = fileSizeBytes.toString(),
+            mimeType = CommonUtils.getMimeType(context, filePath)
         )
     }
 

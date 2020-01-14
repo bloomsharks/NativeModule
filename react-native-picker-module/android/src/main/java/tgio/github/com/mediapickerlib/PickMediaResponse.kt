@@ -21,13 +21,15 @@ data class PickPhotoResponse(
         map.putInt("width", metadata.width)
         map.putInt("height", metadata.height)
         map.putInt("fileSize", metadata.fileSizeBytes.toInt())
+        map.putString("mimeType", metadata.mimeType ?: "Unknown")
         return map
     }
     data class PhotoMetaData(
         val width: Int,
         val height: Int,
         val fileName: String,
-        val fileSizeBytes: Long
+        val fileSizeBytes: Long,
+        val mimeType: String?
     )
 }
 
@@ -45,6 +47,7 @@ data class PickVideoResponse(
         map.putInt("fileSize", metadata.fileSizeBytes?.toInt() ?: 0)
         map.putInt("durationMillis", metadata.durationMillis?.toInt() ?: 0)
         map.putString("thumbnail", metadata.thumbnail)
+        map.putString("mimeType", metadata.mimeType ?: "Unknown")
         return map
     }
     data class VideoMetaData(
@@ -53,7 +56,8 @@ data class PickVideoResponse(
         val fileName: String? = null,
         val fileSizeBytes: String? = null,
         val durationMillis: String? = null,
-        val thumbnail: String? = null
+        val thumbnail: String? = null,
+        val mimeType: String?
     )
 }
 
@@ -67,10 +71,12 @@ data class PickFileResponse(
         map.putString("uri", uri)
         map.putString("fileName", metadata.fileName)
         map.putInt("fileSize", metadata.fileSizeBytes?.toInt() ?: 0)
+        map.putString("mimeType", metadata.mimeType ?: "Unknown")
         return map
     }
     data class FileMetaData(
         val fileName: String? = null,
-        val fileSizeBytes: Long? = null
+        val fileSizeBytes: Long? = null,
+        val mimeType: String?
     )
 }

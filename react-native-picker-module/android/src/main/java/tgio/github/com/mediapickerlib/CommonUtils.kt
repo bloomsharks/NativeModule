@@ -1,9 +1,11 @@
 package tgio.github.com.mediapickerlib
 
+import android.content.ContentResolver
 import android.content.Context
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Size
+import android.webkit.MimeTypeMap
 import com.hbisoft.pickit.PickiT
 import com.hbisoft.pickit.PickiTCallbacks
 import java.io.File
@@ -42,6 +44,11 @@ object CommonUtils {
                 }
             }
         }
+    }
+
+    fun getMimeType(context: Context, uri: Uri): String? {
+        val cR: ContentResolver = context.contentResolver
+        return cR.getType(uri)
     }
 
     fun getFileName(path: String): String {
