@@ -21,7 +21,7 @@ data class PickPhotoResponse(
         map.putInt("width", metadata.width)
         map.putInt("height", metadata.height)
         map.putInt("fileSize", metadata.fileSizeBytes.toInt())
-        map.putString("mimeType", metadata.mimeType ?: "Unknown")
+        map.putString("type", metadata.mimeType ?: "Unknown")
         return map
     }
     data class PhotoMetaData(
@@ -47,7 +47,7 @@ data class PickVideoResponse(
         map.putInt("fileSize", metadata.fileSizeBytes?.toInt() ?: 0)
         map.putInt("durationMillis", metadata.durationMillis?.toInt() ?: 0)
         map.putString("thumbnail", metadata.thumbnail)
-        map.putString("mimeType", metadata.mimeType ?: "Unknown")
+        map.putString("type", metadata.mimeType ?: "Unknown")
         return map
     }
     data class VideoMetaData(
@@ -71,7 +71,7 @@ data class PickFileResponse(
         map.putString("uri", uri)
         map.putString("fileName", metadata.fileName)
         map.putInt("fileSize", metadata.fileSizeBytes?.toInt() ?: 0)
-        map.putString("mimeType", metadata.mimeType ?: "Unknown")
+        map.putString("type", metadata.mimeType ?: "Unknown")
         return map
     }
     data class FileMetaData(
