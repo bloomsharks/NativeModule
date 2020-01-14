@@ -55,7 +55,7 @@ class NativePicker(
     )
 
     private fun launchCrop(uri: Uri) {
-        val fileName = CommonUtils.getFileName(uri.lastPathSegment!!)
+        val fileName = getFileNameAndSize(activity, uri).second
         val photoRequest = pickMediaRequest as Photo
         CommonUtils.getImageDimensions(activity, uri) { imageDimensions ->
             proxy(
