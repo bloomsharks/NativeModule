@@ -1,6 +1,6 @@
 package tgio.github.com.mediapickerlib.proxy
 
-import android.app.Activity
+import androidx.appcompat.app.AppCompatActivity
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
@@ -38,12 +38,12 @@ data class Launcher(private val contextBucket: ContextBucket, private val result
             }
         }
         val context = when {
-            contextBucket.context is Activity -> contextBucket.context
+            contextBucket.context is AppCompatActivity -> contextBucket.context
             contextBucket.context is ContextWrapper -> contextBucket.context.baseContext ?: contextBucket.context
             else -> contextBucket.context
         }
         context.startActivity(Intent(context, ProxyActivity::class.java).apply {
-            if(context !is Activity){
+            if(context !is AppCompatActivity){
                 // this is not an activity context
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }

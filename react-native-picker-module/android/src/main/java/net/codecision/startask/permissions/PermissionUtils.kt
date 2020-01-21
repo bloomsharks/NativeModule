@@ -1,6 +1,6 @@
 package net.codecision.startask.permissions
 
-import android.app.Activity
+import androidx.appcompat.app.AppCompatActivity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
@@ -16,11 +16,11 @@ class PermissionUtils {
     companion object {
 
         fun checkPermissions(
-                activity: Activity,
-                permissions: Array<out String>,
-                requestCode: Int,
-                shouldShowRationale: Boolean,
-                shouldRequestAutomatically: Boolean
+            activity: AppCompatActivity,
+            permissions: Array<out String>,
+            requestCode: Int,
+            shouldShowRationale: Boolean,
+            shouldRequestAutomatically: Boolean
         ): PermissionCheckResult {
             return if (isGranted(activity, permissions)) {
                 PermissionCheckResult.getGranted()
@@ -42,11 +42,11 @@ class PermissionUtils {
             }
         }
 
-        fun isGranted(activity: Activity, permissions: Array<out String>) = isGranted(activity as Context, permissions)
+        fun isGranted(activity: AppCompatActivity, permissions: Array<out String>) = isGranted(activity as Context, permissions)
 
         fun isGranted(fragment: Fragment, permissions: Array<out String>) = isGranted(fragment.requireContext(), permissions)
 
-        fun requestPermissions(activity: Activity, permissions: Array<out String>, requestCode: Int) {
+        fun requestPermissions(activity: AppCompatActivity, permissions: Array<out String>, requestCode: Int) {
             ActivityCompat.requestPermissions(activity, permissions, requestCode)
         }
 
@@ -71,9 +71,9 @@ class PermissionUtils {
         }
 
         fun onRequestPermissionsResult(
-                activity: Activity,
-                grantResults: IntArray,
-                permissions: Array<out String>
+            activity: AppCompatActivity,
+            grantResults: IntArray,
+            permissions: Array<out String>
         ): PermissionRequestResult {
             return if (verifyPermissionsResult(grantResults)) {
                 PermissionRequestResult.getGranted()
@@ -87,11 +87,11 @@ class PermissionUtils {
         }
 
         private fun doOnDenied(
-                activity: Activity,
-                permissions: Array<out String>,
-                requestCode: Int,
-                shouldShowRationale: Boolean,
-                shouldRequestAutomatically: Boolean
+            activity: AppCompatActivity,
+            permissions: Array<out String>,
+            requestCode: Int,
+            shouldShowRationale: Boolean,
+            shouldRequestAutomatically: Boolean
         ): PermissionCheckResult {
             return if (shouldShowRationale && shouldShowRequestPermissionRationale(activity, permissions)) {
                 PermissionCheckResult.getShowRationale()
@@ -125,7 +125,7 @@ class PermissionUtils {
             return grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }
         }
 
-        private fun shouldShowRequestPermissionRationale(activity: Activity, permissions: Array<out String>): Boolean {
+        private fun shouldShowRequestPermissionRationale(activity: AppCompatActivity, permissions: Array<out String>): Boolean {
             return permissions.any { ActivityCompat.shouldShowRequestPermissionRationale(activity, it) }
         }
 

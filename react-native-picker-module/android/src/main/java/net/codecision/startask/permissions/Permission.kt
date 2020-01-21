@@ -1,6 +1,6 @@
 package net.codecision.startask.permissions
 
-import android.app.Activity
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import net.codecision.startask.permissions.model.PermissionCheckResult
 import net.codecision.startask.permissions.model.PermissionRequestResult
@@ -20,7 +20,7 @@ class Permission private constructor(
      * @param activity: Activity for accessing resources.
      * @return The permission check result {@link PermissionCheckResult}
      */
-    fun check(activity: Activity): PermissionCheckResult {
+    fun check(activity: AppCompatActivity): PermissionCheckResult {
         return PermissionUtils.checkPermissions(
                 activity,
                 permissions,
@@ -52,7 +52,7 @@ class Permission private constructor(
      *
      * @param activity: Activity for accessing resources.
      */
-    fun request(activity: Activity) {
+    fun request(activity: AppCompatActivity) {
         return PermissionUtils.requestPermissions(activity, permissions, requestCode)
     }
 
@@ -71,7 +71,7 @@ class Permission private constructor(
      * @param activity: Activity for accessing resources.
      * @return The permission check result which is either {true or false}.
      */
-    fun isGranted(activity: Activity): Boolean {
+    fun isGranted(activity: AppCompatActivity): Boolean {
         return PermissionUtils.isGranted(activity, permissions)
     }
 
@@ -112,9 +112,9 @@ class Permission private constructor(
      * @param grantResults
      */
     fun onRequestPermissionsResult(
-            activity: Activity,
-            requestCode: Int,
-            grantResults: IntArray
+        activity: AppCompatActivity,
+        requestCode: Int,
+        grantResults: IntArray
     ): PermissionRequestResult {
         return if (requestCode == this.requestCode) {
             PermissionUtils.onRequestPermissionsResult(activity, grantResults, permissions)

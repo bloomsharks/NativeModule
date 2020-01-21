@@ -5,7 +5,7 @@
 ```profile, cover, post, custom```
 
 #### Options for custom photo ratio [FLOAT] default 0
-```keyX, keyY```
+```ratioX, ratioY```
 
 #### If value is more than 0, it will ignore ```compressionQuality``` and use backing compression, starting from 100 down to 0, if result size exceeds given number
 #### Option ```maxFileSizeBytes``` [INT] default 0

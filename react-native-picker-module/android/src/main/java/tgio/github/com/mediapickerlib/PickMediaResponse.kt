@@ -1,82 +1,146 @@
 package tgio.github.com.mediapickerlib
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.os.Bundle
 import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.WritableMap
 
-sealed class PickMediaResponse(
-    open val uri: String
+data class PickMediaResponse(
+    val uri: String,
+    val fileName: String,
+    val type: String,
+    val fileSize: String,
+    val width: String? = null,
+    val height: String? = null,
+    val duration: String? = null,
+    val thumbnail: String? = null
 ) {
-    abstract fun toWritableMap(): WritableMap
-}
 
-data class PickPhotoResponse(
-    val mediaRequest: PickMediaRequest,
-    override val uri: String,
-    val metadata: PhotoMetaData
-) : PickMediaResponse(uri) {
-    override fun toWritableMap(): WritableMap {
+    fun toBundle(): WritableMap {
         val map = Arguments.createMap()
+
         map.putString("uri", uri)
-        map.putString("fileName", metadata.fileName)
-        map.putInt("width", metadata.width)
-        map.putInt("height", metadata.height)
-        map.putInt("fileSize", metadata.fileSizeBytes.toInt())
-        map.putString("type", metadata.mimeType ?: "Unknown")
+        map.putString("fileName", fileName)
+        map.putString("fileSize", fileSize)
+        map.putString("type", type)
+
+        //Optionals
+        width?.let {
+            map.putString("width", width)
+        }
+
+        height?.let {
+            map.putString("height", height)
+        }
+
+        thumbnail?.let {
+            map.putString("thumbnail", thumbnail)
+        }
+        duration?.let {
+            map.putString("duration", duration)
+        }
+
         return map
     }
-    data class PhotoMetaData(
-        val width: Int,
-        val height: Int,
-        val fileName: String,
-        val fileSizeBytes: Long,
-        val mimeType: String?
-    )
-}
 
-data class PickVideoResponse(
-    val mediaRequest: PickMediaRequest,
-    override val uri: String,
-    val metadata: VideoMetaData
-) : PickMediaResponse(uri) {
-    override fun toWritableMap(): WritableMap {
-        val map = Arguments.createMap()
-        map.putString("uri", uri)
-        map.putString("fileName", metadata.fileName)
-        map.putInt("width", metadata.width?.toInt() ?: 0)
-        map.putInt("height", metadata.height?.toInt() ?: 0)
-        map.putInt("fileSize", metadata.fileSizeBytes?.toInt() ?: 0)
-        map.putInt("durationMillis", metadata.durationMillis?.toInt() ?: 0)
-        map.putString("thumbnail", metadata.thumbnail)
-        map.putString("type", metadata.mimeType ?: "Unknown")
-        return map
-    }
-    data class VideoMetaData(
-        val height: String? = null,
-        val width: String? = null,
-        val fileName: String? = null,
-        val fileSizeBytes: String? = null,
-        val durationMillis: String? = null,
-        val thumbnail: String? = null,
-        val mimeType: String?
-    )
-}
+    companion object {
+        private fun handlePhoto(
+            context: Context,
+            intent: Intent,
+            promise: Promise
+        ) {
+            val extras = intent.extras!!
+            val uri = extras.getParcelable<Uri>("uri")!!
+            val (fileName, size) = MetaDataUtils.getFileNameAndSize(context, uri)
 
-data class PickFileResponse(
-    val mediaRequest: PickMediaRequest,
-    override val uri: String,
-    val metadata: FileMetaData
-) : PickMediaResponse(uri) {
-    override fun toWritableMap(): WritableMap {
-        val map = Arguments.createMap()
-        map.putString("uri", uri)
-        map.putString("fileName", metadata.fileName)
-        map.putInt("fileSize", metadata.fileSizeBytes?.toInt() ?: 0)
-        map.putString("type", metadata.mimeType ?: "Unknown")
-        return map
+            promise.resolve(
+                PickMediaResponse(
+                    uri = uri.toString(),
+                    fileName = fileName,
+                    fileSize = size.toString(),
+                    type = CommonUtils.getMimeType(context, uri),
+                    height = intent.getStringExtra("imageHeight"),
+                    width = intent.getStringExtra("imageWidth")
+                ).toBundle()
+            )
+        }
+
+        private fun handleVideo(
+            context: Context,
+            intent: Intent,
+            promise: Promise
+        ) {
+            val uri = intent.data!!
+            val (fileName, size) = MetaDataUtils.getFileNameAndSize(context, uri)
+
+            var width: String? = null
+            var height: String? = null
+            var duration: String? = null
+            var thumbnail: String? = null
+
+            try {
+                val videoMetaData = MetaDataUtils.getVideoMetaData(
+                    context,
+                    uri,
+                    DEFAULT_COMPRESSION_QUALITY_THUMB
+                )
+                width = videoMetaData.width
+                height = videoMetaData.height
+                duration = videoMetaData.durationMillis
+                thumbnail = videoMetaData.thumbnailPath
+            } catch (e: Exception) {
+                promise.reject(e)
+            }
+
+            promise.resolve(
+                PickMediaResponse(
+                    uri = uri.toString(),
+                    fileName = fileName,
+                    fileSize = size.toString(),
+                    type = CommonUtils.getMimeType(context, uri),
+                    thumbnail = thumbnail,
+                    height = height,
+                    width = width,
+                    duration = duration
+                ).toBundle()
+            )
+        }
+
+        private fun handleFile(
+            context: Context,
+            intent: Intent,
+            promise: Promise
+        ) {
+            val uri = intent.data!!
+            val (fileName, size) = MetaDataUtils.getFileNameAndSize(context, uri)
+
+            promise.resolve(
+                PickMediaResponse(
+                    uri = uri.toString(),
+                    fileName = fileName,
+                    fileSize = size.toString(),
+                    type = CommonUtils.getMimeType(context, uri)
+                ).toBundle()
+            )
+        }
+
+        fun handle(
+            context: Context,
+            mediaRequest: PickMediaRequest,
+            intent: Intent?,
+            promise: Promise
+        ) {
+            if (intent == null) {
+                promise.resolve(CustomError(message = "Intent is null.").toBundle())
+            } else when (mediaRequest.getRequestType()) {
+                PICK_REQUEST_TYPE_PHOTO -> handlePhoto(context, intent, promise)
+                PICK_REQUEST_TYPE_VIDEO -> handleVideo(context, intent, promise)
+                PICK_REQUEST_TYPE_FILES -> handleFile(context, intent, promise)
+                else -> promise.resolve(CustomError(message = "Unknown request type").toBundle())
+            }
+        }
     }
-    data class FileMetaData(
-        val fileName: String? = null,
-        val fileSizeBytes: Long? = null,
-        val mimeType: String?
-    )
 }

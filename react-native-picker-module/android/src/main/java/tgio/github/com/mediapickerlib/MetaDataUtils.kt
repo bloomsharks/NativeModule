@@ -5,7 +5,6 @@ import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.provider.OpenableColumns
-import androidx.annotation.IntRange
 import androidx.core.net.toFile
 import java.io.File
 import java.io.FileOutputStream
@@ -13,13 +12,19 @@ import java.io.OutputStream
 import java.util.*
 
 object MetaDataUtils {
+
+    class VideoMetaData(
+        val thumbnailPath: String,
+        val durationMillis: String,
+        val width: String,
+        val height: String
+    )
+
     fun getVideoMetaData(
         context: Context,
         filePath: Uri,
-        @IntRange(from = 10, to = 100) thumbnailQuality: Int,
-        originalName: String,
-        fileSizeBytes: Long
-    ): PickVideoResponse.VideoMetaData {
+        thumbnailQuality: Int
+    ): VideoMetaData {
         val retriever = MediaMetadataRetriever()
         retriever.setDataSource(context, filePath)
         val image = retriever.getFrameAtTime(
@@ -28,7 +33,6 @@ object MetaDataUtils {
         )
 
         val fullPath = context.cacheDir.path + "/thumb"
-        var thumbnail: String? = null
         try {
             val dir = File(fullPath)
             if (!dir.exists()) {
@@ -41,20 +45,18 @@ object MetaDataUtils {
             image.compress(Bitmap.CompressFormat.JPEG, thumbnailQuality, fOut)
             fOut.flush()
             fOut.close()
-            thumbnail = "file://$fullPath/$fileName"
-        } catch (ignored: Exception) { }
-        return PickVideoResponse.VideoMetaData(
-            thumbnail = thumbnail,
-            durationMillis = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION),
-            height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT),
-            width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH),
-            fileName = originalName,
-            fileSizeBytes = fileSizeBytes.toString(),
-            mimeType = CommonUtils.getMimeType(context, filePath)
-        )
+            val thumbnail = "file://$fullPath/$fileName"
+            val durationMillis =
+                retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+            val height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
+            val width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
+            return VideoMetaData(thumbnail, durationMillis, width, height)
+        } catch (ex: Exception) {
+            throw ex
+        }
     }
 
-    fun getFileNameAndSize(context: Context, mUri: Uri): Pair<Long, String> {
+    fun getFileNameAndSize(context: Context, mUri: Uri): Pair<String, Long> {
         var size = 0L
         var originalFileName = ""
         when (mUri.scheme) {
@@ -78,6 +80,6 @@ object MetaDataUtils {
                 println("getFileNameAndSize($mUri) >>> unknown scheme ${mUri.scheme}")
             }
         }
-        return Pair(size, originalFileName)
+        return Pair(originalFileName, size)
     }
 }

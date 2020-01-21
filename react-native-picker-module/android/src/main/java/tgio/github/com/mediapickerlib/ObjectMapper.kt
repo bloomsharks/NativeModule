@@ -1,13 +1,8 @@
 package tgio.github.com.mediapickerlib
 
 import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.bridge.WritableMap
 
 object ObjectMapper {
-    fun prepareResponse(pickMediaResponse: PickMediaResponse): WritableMap {
-        return pickMediaResponse.toWritableMap()
-    }
-
     fun constructMediaPickRequest(options: ReadableMap): PickMediaRequest {
         val pickMediaRequest: PickMediaRequest
         if(options.hasKey(KEY_MEDIATYPE).not()) {
@@ -15,33 +10,50 @@ object ObjectMapper {
         }
         when (val mediaType = options.getString(KEY_MEDIATYPE)) {
             MEDIATYPE_PHOTO -> {
-                val proportion = options.getString(KEY_PHOTO_PROPORTION)
-                val x = if (options.hasKey(KEY_PHOTO_X)) {
-                    options.getString(KEY_PHOTO_X).toFloat()
-                } else 0F
-                val y = if (options.hasKey(KEY_PHOTO_Y)) {
-                    options.getString(KEY_PHOTO_Y).toFloat()
-                } else 0F
                 pickMediaRequest = Photo(
-                    when (proportion) {
-                        PHOTO_COVER -> Photo.Proportion.COVER
-                        PHOTO_PROFILE -> Photo.Proportion.PROFILE
-                        PHOTO_POST -> Photo.Proportion.POST
-                        PHOTO_CUSTOM -> Photo.Proportion.CUSTOM(x, y)
-                        else -> throw RuntimeException("`proportion` [$proportion] not supported")
+                    ratioX = when {
+                        options.hasKey(KEY_PHOTO_RATIO_X) -> {
+                            options.getInt(KEY_PHOTO_RATIO_X)
+                        }
+                        options.hasKey(KEY_PHOTO_PROPORTION) -> {
+                            when(options.getString(KEY_PHOTO_PROPORTION)) {
+                                KEY_PHOTO_PROFILE -> DEFAULT_RATIO
+                                KEY_PHOTO_COVER -> DEFAULT_RATIO_COVER_X
+                                KEY_PHOTO_POST -> 0
+                                else -> DEFAULT_RATIO
+                            }
+                        }
+                        else -> DEFAULT_RATIO
+                    },
+                    ratioY = when {
+                        options.hasKey(KEY_PHOTO_RATIO_Y) -> {
+                            options.getInt(KEY_PHOTO_RATIO_Y)
+                        }
+                        options.hasKey(KEY_PHOTO_PROPORTION) -> {
+                            when(options.getString(KEY_PHOTO_PROPORTION)) {
+                                KEY_PHOTO_PROFILE -> DEFAULT_RATIO
+                                KEY_PHOTO_COVER -> DEFAULT_RATIO_COVER_Y
+                                KEY_PHOTO_POST -> 0
+                                else -> DEFAULT_RATIO
+                            }
+                        }
+                        else -> DEFAULT_RATIO
                     },
                     maxFileSizeBytes = if (options.hasKey(KEY_PHOTO_MAX_FILE_SIZE_BYTES)) {
                         options.getInt(KEY_PHOTO_MAX_FILE_SIZE_BYTES)
-                    } else 0,
+                    } else DEFAULT_MAX_FILE_SIZE_BYTES,
                     compressionQuality = if (options.hasKey(KEY_PHOTO_COMPRESSION_QUALITY)) {
                         options.getInt(KEY_PHOTO_COMPRESSION_QUALITY)
-                    } else 60,
+                    } else DEFAULT_COMPRESSION_QUALITY,
                     maxScaleMultiplier = if (options.hasKey(KEY_PHOTO_MAX_SCALE_MULTIPLIER)) {
                         options.getString(KEY_PHOTO_MAX_SCALE_MULTIPLIER).toFloat()
-                    } else 10F,
+                    } else DEFAULT_MAX_ZOOM,
                     maxBitmapSize = if (options.hasKey(KEY_PHOTO_MAX_BITMAP_SIZE)) {
                         options.getInt(KEY_PHOTO_MAX_BITMAP_SIZE)
-                    } else 10000
+                    } else DEFAULT_MAX_BITMAP_SIZE,
+                    skipCrop = if(options.hasKey(KEY_PHOTO_SKIP_CROP)) {
+                        options.getBoolean(KEY_PHOTO_SKIP_CROP)
+                    } else DEFAULT_PHOTO_SKIP_CROP
                 )
             }
             MEDIATYPE_VIDEO -> {
@@ -63,6 +75,7 @@ object ObjectMapper {
                 throw RuntimeException("'nextButtonString' is provided but it is empty.")
             }
         }
+        println("CXX Created request $pickMediaRequest")
         return pickMediaRequest
     }
 }

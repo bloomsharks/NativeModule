@@ -39,6 +39,27 @@ export default class App extends React.Component {
             onPress={() => {
               PickerModule.pickMedia({
                 mediaType: 'photo',
+                skipCrop: true,
+              })
+                .then(result => {
+                  this.setState({pickResponse: result});
+                })
+                .catch(error => {
+                  this.setState({
+                    pickResponse: {
+                      code: error.code,
+                      message: error.message,
+                    },
+                  });
+                });
+            }}
+            title="Just Pick Image"
+          />
+          <Separator />
+          <Button
+            onPress={() => {
+              PickerModule.pickMedia({
+                mediaType: 'photo',
                 proportion: 'profile',
               })
                 .then(result => {
@@ -82,7 +103,6 @@ export default class App extends React.Component {
               PickerModule.pickMedia({
                 mediaType: 'photo',
                 proportion: 'post',
-                maxFileSizeBytes: 10000,
               })
                 .then(result => {
                   this.setState({pickResponse: result});
@@ -103,9 +123,8 @@ export default class App extends React.Component {
             onPress={() => {
               PickerModule.pickMedia({
                 mediaType: 'photo',
-                proportion: 'custom',
-                keyX: '37.0',
-                keyY: '14.0',
+                ratioX: 37.0,
+                ratioY: 14.0,
               })
                 .then(result => {
                   this.setState({pickResponse: result});

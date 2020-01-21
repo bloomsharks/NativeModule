@@ -1,0 +1,79 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:imagecrop="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        imagecrop:navigationIcon="@drawable/bloom_native_ic_back"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#fff"
+        android:minHeight="?attr/actionBarSize">
+
+        <TextView
+            android:id="@+id/toolbar_title"
+            style="@style/TextAppearance.Widget.AppCompat.Toolbar.Title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="Crop"
+            android:textColor="#000"
+            android:textSize="15sp" />
+
+        <Button
+            android:id="@+id/btnSave"
+            android:layout_width="wrap_content"
+            android:layout_height="44dp"
+            android:layout_gravity="end"
+            android:layout_marginTop="8dp"
+            android:layout_marginRight="8dp"
+            android:layout_marginBottom="8dp"
+            android:backgroundTint="#FFFFFF"
+            android:enabled="true"
+            android:stateListAnimator="@null"
+            android:text="Done"
+            android:textAllCaps="false"
+            android:textColor="@color/bloom_native_main"
+            android:textSize="15sp" />
+
+    </androidx.appcompat.widget.Toolbar>
+
+    <View
+        android:id="@+id/shadow"
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:layout_below="@+id/toolbar"
+        android:background="#081A1C1D" />
+
+    <FrameLayout
+        android:id="@+id/ucrop_frame"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/controls_wrapper"
+        android:layout_below="@+id/shadow">
+
+        <com.naver.android.helloyako.imagecrop.view.BloomNativeImageCropView
+            android:id="@+id/imageCropView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="visible"
+            imagecrop:bloom_native_gridInnerStroke="1dp"
+            imagecrop:bloom_native_gridLeftRightMargin="20dp"
+            imagecrop:bloom_native_gridOuterColor="#497CFA"
+            imagecrop:bloom_native_gridOuterStroke="1dp"
+            imagecrop:bloom_native_outsideLayerColor="#CCFFFFFF"
+            imagecrop:bloom_native_setInnerGridMode="off"
+            imagecrop:bloom_native_setOuterGridMode="on" />
+
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/controls_wrapper"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@android:color/black"
+        android:visibility="gone" />
+
+</RelativeLayout>

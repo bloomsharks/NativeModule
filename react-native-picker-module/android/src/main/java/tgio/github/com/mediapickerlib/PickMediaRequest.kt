@@ -1,27 +1,25 @@
 package tgio.github.com.mediapickerlib
 
 import android.content.Intent
+import android.os.Bundle
 import android.provider.MediaStore
 
 sealed class PickMediaRequest {
+    abstract fun getRequestType(): Int
     abstract fun getIntent(): Intent
     open var nextButtonString: String? = null
 }
 
 data class Photo(
-    val proportion: Proportion,
+    val ratioX: Int,
+    val ratioY: Int,
     val maxFileSizeBytes: Int,
     val compressionQuality: Int,
     val maxBitmapSize: Int,
-    val maxScaleMultiplier: Float
+    val maxScaleMultiplier: Float,
+    val skipCrop: Boolean = false
 ) : PickMediaRequest() {
-    sealed class Proportion(open val x: Float, open val y: Float) {
-        object PROFILE : Proportion(1F, 1F)
-        object COVER : Proportion(343F, 136F)
-        object POST : Proportion(0F, 0F)
-        data class CUSTOM(override val x: Float, override val y: Float) : Proportion(x, y)
-    }
-
+    override fun getRequestType(): Int = PICK_REQUEST_TYPE_PHOTO
     override fun getIntent(): Intent {
         return Intent.createChooser(
             Intent(
@@ -36,9 +34,42 @@ data class Photo(
             "Pick Photo"
         )
     }
+
+    companion object {
+        fun fromBundle(bundle: Bundle): Photo {
+            return Photo(
+                ratioX = bundle.getInt("x", DEFAULT_RATIO),
+                ratioY = bundle.getInt("y", DEFAULT_RATIO),
+                maxFileSizeBytes = bundle.getInt("maxFileSizeBytes", DEFAULT_MAX_FILE_SIZE_BYTES),
+                compressionQuality = bundle.getInt("compressionQuality", DEFAULT_COMPRESSION_QUALITY),
+                maxBitmapSize = bundle.getInt("maxBitmapSize", DEFAULT_MAX_BITMAP_SIZE),
+                maxScaleMultiplier = bundle.getFloat("maxScaleMultiplier", DEFAULT_MAX_ZOOM),
+                skipCrop = bundle.getBoolean("skipCrop", false)
+            )
+        }
+    }
+
+    fun toBundle(): Bundle {
+        println("photo toBundle $this")
+        return Bundle().also {
+            it.putInt("x", ratioX)
+            it.putInt("y", ratioY)
+            it.putInt("maxFileSizeBytes", maxFileSizeBytes)
+            it.putInt("compressionQuality", compressionQuality)
+            it.putInt("maxBitmapSize", maxBitmapSize)
+            it.putFloat("maxScaleMultiplier", maxScaleMultiplier)
+            it.putBoolean("skipCrop", skipCrop)
+        }
+    }
+
+    override fun toString(): String {
+        return "Photo(ratioX=$ratioX, ratioY=$ratioY, maxFileSizeBytes=$maxFileSizeBytes, compressionQuality=$compressionQuality, maxBitmapSize=$maxBitmapSize, maxScaleMultiplier=$maxScaleMultiplier)"
+    }
 }
 
 class Video : PickMediaRequest() {
+    override fun getRequestType(): Int = PICK_REQUEST_TYPE_VIDEO
+
     override fun getIntent(): Intent {
         return Intent.createChooser(
             Intent(
@@ -53,6 +84,8 @@ class Video : PickMediaRequest() {
 }
 
 class Files : PickMediaRequest() {
+    override fun getRequestType(): Int = PICK_REQUEST_TYPE_FILES
+
     override fun getIntent(): Intent {
         return Intent.createChooser(
             Intent(Intent.ACTION_OPEN_DOCUMENT)
