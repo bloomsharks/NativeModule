@@ -21,7 +21,7 @@ import tgio.github.com.mediapickerlib.DEFAULT_MIN_ZOOM
 import tgio.github.com.mediapickerlib.Photo
 import tgio.github.com.mediapickerlib.R
 import java.io.File
-
+import java.util.*
 
 class CropActivity : AppCompatActivity() {
 
@@ -110,15 +110,15 @@ class CropActivity : AppCompatActivity() {
                     finish()
                 }
                 btnSave.setOnClickListener {
-                    submitResult(originalFileName)
+                    submitResult()
                 }
             }
         }).getPath(uri)
     }
 
-    private fun submitResult(originalFileName: String) {
+    private fun submitResult() {
         bloomNativeImageCropView.croppedImage?.let { bitmap ->
-            val dest = File(this.cacheDir, originalFileName)
+            val dest = File(this.cacheDir, UUID.randomUUID().toString() + ".jpeg")
             BitmapDecodeAsync(
                 context = this@CropActivity,
                 bitmap = bitmap,

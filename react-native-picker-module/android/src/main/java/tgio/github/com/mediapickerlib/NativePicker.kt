@@ -19,6 +19,7 @@ import com.naver.android.helloyako.imagecrop.util.BitmapLoadUtils
 import com.naver.android.helloyako.imagecrop.view.CropActivity
 import tgio.github.com.mediapickerlib.proxy.Proxy
 import java.io.File
+import java.util.*
 
 class NativePicker(
     private val activity: Activity,
@@ -77,7 +78,7 @@ class NativePicker(
                 Reason: String?
             ) {
                 BitmapLoadUtils.decode(path, 4000, 4000, false).let { bitmap ->
-                    val dest = File(activity.cacheDir, originalFileName)
+                    val dest = File(activity.cacheDir, UUID.randomUUID().toString() + ".jpeg")
                     BitmapDecodeAsync(
                         activity,
                         bitmap,
