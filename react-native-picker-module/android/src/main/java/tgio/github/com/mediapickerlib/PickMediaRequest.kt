@@ -50,7 +50,6 @@ data class Photo(
     }
 
     fun toBundle(): Bundle {
-        println("photo toBundle $this")
         return Bundle().also {
             it.putInt("x", ratioX)
             it.putInt("y", ratioY)
@@ -67,7 +66,28 @@ data class Photo(
     }
 }
 
-class Video : PickMediaRequest() {
+class Video(
+    val trim: Boolean,
+    val compress: Boolean,
+    val encode: Boolean,
+    val minDurationSeconds: Int,
+    val maxDurationSeconds: Int,
+    val staticText: String,
+    val maxDisplayedThumbs: Int = DEFAULT_MAX_DISPLAYED_THUMBS
+) : PickMediaRequest() {
+
+    fun toBundle(): Bundle {
+        return Bundle().also {
+            it.putBoolean(KEY_DO_TRIM, trim)
+            it.putBoolean(KEY_DO_ENCODE, encode)
+            it.putBoolean(KEY_COMPRESS_AFTER_TRIM, compress)
+            it.putString(KEY_STATIC_TEXT, staticText)
+            it.putInt(KEY_MIN_SECONDS, minDurationSeconds)
+            it.putInt(KEY_MAX_SECONDS, maxDurationSeconds)
+            it.putInt(KEY_MAX_DISPLAYED_THUMBS, maxDisplayedThumbs)
+        }
+    }
+
     override fun getRequestType(): Int = PICK_REQUEST_TYPE_VIDEO
 
     override fun getIntent(): Intent {

@@ -23,8 +23,6 @@ object CommonUtils {
                 type = mime.getMimeTypeFromExtension(extension)
             }
         }
-
-        println("getMimeType $uri type: $type" )
         return type ?: "Unknown"
     }
 

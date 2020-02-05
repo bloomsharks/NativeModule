@@ -66,7 +66,6 @@ class CropActivity : AppCompatActivity() {
         photo = Photo.fromBundle(intent.extras!!)
         val uri = intent.getParcelableExtra<Uri>("uri")
 
-        println("photo $photo")
         photo.nextButtonString?.let {
             btnSave.text = it
         }
@@ -89,7 +88,6 @@ class CropActivity : AppCompatActivity() {
             ) {
                 if (wasSuccessful) {
                     bloomNativeImageCropView.setImageFilePath(path)
-                    println("XKA path: $path; originalFileName: $originalFileName")
                     DownloadAsync(
                         this@CropActivity,
                         photo

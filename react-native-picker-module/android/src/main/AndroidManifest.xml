@@ -11,6 +11,10 @@
                 android:configChanges="screenSize|screenLayout|fontScale|keyboardHidden|keyboard|orientation|colorMode|density|layoutDirection|locale|mcc|mnc|navigation|smallestScreenSize|touchscreen|uiMode"
                 android:name=".proxy.ProxyActivity" />
         <activity
+            android:name=".videoProcessing.VideoTrimmerActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
+        <activity
                 android:name="com.naver.android.helloyako.imagecrop.view.CropActivity"
                 android:screenOrientation="portrait"
                 android:theme="@style/Theme.AppCompat.Light.NoActionBar" />

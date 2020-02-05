@@ -3,7 +3,6 @@ package tgio.github.com.mediapickerlib
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Bundle
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.WritableMap
@@ -74,8 +73,9 @@ data class PickMediaResponse(
             promise: Promise
         ) {
             val uri = intent.data!!
-            val (fileName, size) = MetaDataUtils.getFileNameAndSize(context, uri)
+            val (_, size) = MetaDataUtils.getFileNameAndSize(context, uri)
 
+            val fileName = intent.getStringExtra(KEY_ORIGINAL_FILE_NAME)
             var width: String? = null
             var height: String? = null
             var duration: String? = null

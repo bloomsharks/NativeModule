@@ -145,6 +145,13 @@ export default class App extends React.Component {
             onPress={() => {
               PickerModule.pickMedia({
                 mediaType: 'video',
+                doTrim: true,
+                compressAfterTrim: false,
+                doEncode: false,
+                minSeconds: 1,
+                maxSeconds: 90,
+                staticText: 'Hello From RN',
+                maxDisplayedThumbs: 3,
               })
                 .then(result => {
                   this.setState({pickResponse: result});

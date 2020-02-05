@@ -1,0 +1,11 @@
+<resources>
+    <dimen name="bloom_native_frames_video_height">90dp</dimen>
+    <dimen name="bloom_native_thumb_width">14dp</dimen>
+    <dimen name="bloom_native_paddingTimeline">15dp</dimen>
+    <dimen name="bloom_native_rangeBarPaddingTop">40dp</dimen>
+    <dimen name="bloom_native_rangeBarTextPaddingTop">33dp</dimen>
+    <dimen name="bloom_native_linePositionY">5dp</dimen>
+    <dimen name="bloom_native_lineHeight">2dp</dimen>
+    <dimen name="bloom_native_lineThickness">1dp</dimen>
+    <dimen name="bloom_native_progress_thumb_width">2dp</dimen>
+</resources>

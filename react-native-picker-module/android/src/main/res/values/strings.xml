@@ -1,3 +1,6 @@
 <resources>
     <string name="bloom_native_app_name">Native Lib</string>
+    <string name="bloom_native_trimmed_done">video trim completed！</string>
+    <string name="bloom_native_trimming">trimming video...</string>
+    <string name="bloom_native_compressing">compressing video...</string>
 </resources>

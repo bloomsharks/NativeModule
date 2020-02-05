@@ -24,6 +24,7 @@ const val MEDIATYPE_FILE = "file"
 const val REQUEST_CODE_CROP_IMAGE = 1336
 const val REQUEST_PICK_PHOTO = 1337
 const val REQUEST_PICK_VIDEO = 1338
+const val REQUEST_TRIM_VIDEO = 1340
 const val REQUEST_PICK_FILE = 1339
 
 
@@ -41,3 +42,23 @@ const val DEFAULT_MIN_ZOOM = 1F
 const val PICK_REQUEST_TYPE_PHOTO = 1
 const val PICK_REQUEST_TYPE_VIDEO = 2
 const val PICK_REQUEST_TYPE_FILES = 3
+
+const val KEY_ORIGINAL_FILE_NAME = "originalFileName"
+const val KEY_VIDEO_PATH = "videoPath"
+const val KEY_MIN_SECONDS = "minSeconds"
+const val KEY_MAX_SECONDS = "maxSeconds"
+const val KEY_MAX_DISPLAYED_THUMBS = "maxDisplayedThumbs"
+const val KEY_COMPRESS_AFTER_TRIM = "compressAfterTrim"
+const val KEY_DO_ENCODE = "doEncode"
+const val KEY_DO_TRIM = "doTrim"
+const val KEY_STATIC_TEXT = "staticText"
+
+const val DEFAULT_MIN_SECONDS = 1
+const val DEFAULT_MIN_DURATION = DEFAULT_MIN_SECONDS * 1000L
+const val DEFAULT_MAX_SECONDS = 10
+const val DEFAULT_MAX_DURATION = DEFAULT_MAX_SECONDS * 1_000L
+const val DEFAULT_MAX_DISPLAYED_THUMBS = 3
+const val DEFAULT_COMPRESS_AFTER_TRIM = false
+const val DEFAULT_DO_ENCODE = false
+const val DEFAULT_KEY_DO_TRIM = false
+const val DEFAULT_STATIC_TEXT = ""

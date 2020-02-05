@@ -4,7 +4,6 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
-import android.os.Bundle
 import com.facebook.react.bridge.Promise
 import com.hbisoft.pickit.PickiT
 import com.hbisoft.pickit.PickiTCallbacks
@@ -18,6 +17,7 @@ import com.naver.android.helloyako.imagecrop.BitmapDecodeAsync
 import com.naver.android.helloyako.imagecrop.util.BitmapLoadUtils
 import com.naver.android.helloyako.imagecrop.view.CropActivity
 import tgio.github.com.mediapickerlib.proxy.Proxy
+import tgio.github.com.mediapickerlib.videoProcessing.VideoTrimmerActivity
 import java.io.File
 import java.util.*
 
@@ -53,13 +53,20 @@ class NativePicker(
         requestCode = REQUEST_PICK_FILE
     )
 
-    private fun launchCrop(uri: Uri) {
-        println("QWW uri = [${uri}]")
-        proxy(
-            intent = CropActivity.getIntent(activity, uri, pickMediaRequest as Photo),
-            requestCode = REQUEST_CODE_CROP_IMAGE
-        )
-    }
+    private fun launchCrop(uri: Uri) = proxy(
+        intent = CropActivity.getIntent(activity, uri, pickMediaRequest as Photo),
+        requestCode = REQUEST_CODE_CROP_IMAGE
+    )
+
+    private fun launchTrim(videoPath: String, originalFileName: String) = proxy(
+        intent = VideoTrimmerActivity.getIntent(
+            context = activity,
+            videoPath = videoPath,
+            request = pickMediaRequest as Video,
+            originalFileName = originalFileName
+        ),
+        requestCode = REQUEST_TRIM_VIDEO
+    )
 
     private fun launchVideoPicker() = proxy(
         intent = pickMediaRequest.getIntent(),
@@ -101,9 +108,33 @@ class NativePicker(
         }).getPath(uri)
     }
 
+    private fun copyVideo(uri: Uri) {
+        PickiT(activity, object : PickiTCallbacks {
+            override fun PickiTonCompleteListener(
+                path: String?,
+                wasDriveFile: Boolean,
+                wasUnknownProvider: Boolean,
+                wasSuccessful: Boolean,
+                originalFileName: String,
+                originalFileSize: Int,
+                Reason: String?
+            ) {
+                if(wasSuccessful) {
+                    launchTrim(path!!, originalFileName)
+                } else {
+                    promise.reject(Error.CANCELED)
+                }
+            }
+        }).getPath(uri)
+    }
 
     private fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        println("QWW requestCode = [${requestCode}], resultCode = [${resultCode}], data = [${data}]")
+        fun default() = PickMediaResponse.handle(
+            context = activity,
+            mediaRequest = pickMediaRequest,
+            intent = data,
+            promise = promise
+        )
         if (resultCode != Activity.RESULT_OK || data == null) {
             if (data != null) {
                 promise.reject(Error.CANCELED)
@@ -122,16 +153,24 @@ class NativePicker(
                     }
                 }
             }
-            REQUEST_PICK_FILE,
-            REQUEST_PICK_VIDEO,
-            REQUEST_CODE_CROP_IMAGE -> {
-                PickMediaResponse.handle(
-                    context = activity,
-                    mediaRequest = pickMediaRequest,
-                    intent = data,
-                    promise = promise
-                )
+            REQUEST_PICK_VIDEO -> {
+                if((pickMediaRequest as Video).trim) {
+                    if(data.data == null) {
+                        promise.reject(Error.CANCELED)
+                    } else {
+                        copyVideo(data.data!!)
+                    }
+                } else {
+                    if (resultCode == Activity.RESULT_OK) {
+                        default()
+                    } else {
+                        promise.reject(Error.CANCELED)
+                    }
+                }
             }
+            REQUEST_PICK_FILE,
+            REQUEST_TRIM_VIDEO,
+            REQUEST_CODE_CROP_IMAGE ->  default()
         }
     }
 

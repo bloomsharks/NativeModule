@@ -32,13 +32,13 @@ object MetaDataUtils {
             MediaMetadataRetriever.OPTION_CLOSEST_SYNC
         )
 
-        val fullPath = context.cacheDir.path + "/thumb"
+        val fullPath = context.cacheDir.path + "/bloom_native_thumb"
         try {
             val dir = File(fullPath)
             if (!dir.exists()) {
                 dir.mkdirs()
             }
-            val fileName = "thumb-" + UUID.randomUUID().toString() + ".jpeg"
+            val fileName = "bloom_native_thumb-" + UUID.randomUUID().toString() + ".jpeg"
             val file = File(fullPath, fileName)
             file.createNewFile()
             val fOut: OutputStream = FileOutputStream(file)
@@ -77,7 +77,6 @@ object MetaDataUtils {
                 originalFileName = CommonUtils.getFileName(ff.path)
             }
             else -> {
-                println("getFileNameAndSize($mUri) >>> unknown scheme ${mUri.scheme}")
             }
         }
         return Pair(originalFileName, size)

@@ -32,7 +32,6 @@ class BitmapDecodeAsync(
     }
 
     override fun doInBackground(vararg params: Uri): File {
-        println("XKA bitmapConvertToFile $photo")
         FileOutputStream(destination).use { fileOutputStream ->
 
             if (photo.maxFileSizeBytes == 0) {
@@ -55,7 +54,6 @@ class BitmapDecodeAsync(
                             )
                             currSize = destination.length()
                             // limit quality by 5 percent every time
-                            println("XCC compressed $compressed currSize $currSize maxFileSizeBytes ${photo.maxFileSizeBytes} currQuality $currQuality")
                             currQuality -= 5
                             if (currSize >= photo.maxFileSizeBytes) {
                                 destination.delete()
@@ -90,11 +88,9 @@ class BitmapDecodeAsync(
             null,
             object : MediaScannerConnection.MediaScannerConnectionClient {
                 override fun onMediaScannerConnected() {
-                    println("onMediaScannerConnected")
                 }
 
                 override fun onScanCompleted(path: String, uri: Uri?) {
-                    println("onScanCompleted path = [${path}], uri = [${uri}]")
                     callback.invoke(file)
                 }
             }

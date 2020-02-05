@@ -7,7 +7,6 @@ import android.net.Uri
 import android.os.AsyncTask
 import android.util.Size
 import com.naver.android.helloyako.imagecrop.util.BitmapLoadUtils
-import tgio.github.com.mediapickerlib.CommonUtils
 import tgio.github.com.mediapickerlib.Photo
 
 class DownloadAsync(

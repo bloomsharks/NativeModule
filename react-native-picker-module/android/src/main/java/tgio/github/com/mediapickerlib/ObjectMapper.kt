@@ -57,7 +57,29 @@ object ObjectMapper {
                 )
             }
             MEDIATYPE_VIDEO -> {
-                pickMediaRequest = Video()
+                pickMediaRequest = Video(
+                    trim = if(options.hasKey(KEY_DO_TRIM)) {
+                        options.getBoolean(KEY_DO_TRIM)
+                    } else DEFAULT_KEY_DO_TRIM,
+                    compress = if(options.hasKey(KEY_COMPRESS_AFTER_TRIM)) {
+                        options.getBoolean(KEY_COMPRESS_AFTER_TRIM)
+                    } else DEFAULT_COMPRESS_AFTER_TRIM,
+                    minDurationSeconds = if(options.hasKey(KEY_MIN_SECONDS)) {
+                        options.getInt(KEY_MIN_SECONDS)
+                    } else DEFAULT_MIN_SECONDS,
+                    maxDurationSeconds = if(options.hasKey(KEY_MAX_SECONDS)) {
+                        options.getInt(KEY_MAX_SECONDS)
+                    } else DEFAULT_MAX_SECONDS,
+                    staticText = if(options.hasKey(KEY_STATIC_TEXT)) {
+                        options.getString(KEY_STATIC_TEXT)
+                    } else DEFAULT_STATIC_TEXT,
+                    maxDisplayedThumbs = if(options.hasKey(KEY_MAX_DISPLAYED_THUMBS)) {
+                        options.getInt(KEY_MAX_DISPLAYED_THUMBS)
+                    } else DEFAULT_MAX_DISPLAYED_THUMBS,
+                    encode = if(options.hasKey(KEY_DO_ENCODE)) {
+                        options.getBoolean(KEY_DO_ENCODE)
+                    } else DEFAULT_DO_ENCODE
+                )
             }
             MEDIATYPE_FILE -> {
                 pickMediaRequest = Files()
@@ -75,7 +97,6 @@ object ObjectMapper {
                 throw RuntimeException("'nextButtonString' is provided but it is empty.")
             }
         }
-        println("CXX Created request $pickMediaRequest")
         return pickMediaRequest
     }
 }
