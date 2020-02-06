@@ -11,6 +11,6 @@
         android:id="@+id/thumb"
         android:layout_width="39dp"
         android:layout_height="match_parent"
-        android:scaleType="centerCrop"
+        android:scaleType="fitXY"
         tools:src="@color/bloom_native_main"/>
 </LinearLayout>

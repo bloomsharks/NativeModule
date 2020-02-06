@@ -53,7 +53,7 @@ class VideoTrimmerAdapter(
                 .asBitmap()
                 .load(mVideoPath)
                 .centerCrop()
-                .override(300, 300)
+                .override(holder.thumbImageView.width, holder.thumbImageView.height)
                 .apply(options)
                 .downsample(DownsampleStrategy.CENTER_INSIDE)
                 .placeholder(if (position % 2 == 0) R.drawable.bloom_native_thumbnail_placeholder else R.drawable.bloom_native_thumbnail_placeholder2)
