@@ -47,16 +47,14 @@
 
   <RelativeLayout
       android:id="@+id/layout_surface_view"
-      android:layout_width="0dp"
-      android:layout_height="0dp"
+      android:layout_width="match_parent"
+      android:layout_height="300dp"
       android:gravity="center"
-      constraint:layout_constraintHeight_max="200dp"
-      constraint:layout_constraintDimensionRatio="H,4:3"
       constraint:layout_constraintEnd_toEndOf="parent"
       constraint:layout_constraintStart_toStartOf="parent"
       constraint:layout_constraintTop_toBottomOf="@+id/toolbar">
 
-    <tgio.github.com.mediapickerlib.videoProcessing.widget.ZVideoView
+    <VideoView
         android:id="@+id/video_loader"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

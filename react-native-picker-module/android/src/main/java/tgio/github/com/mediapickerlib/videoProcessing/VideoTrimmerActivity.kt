@@ -25,7 +25,6 @@ import tgio.github.com.mediapickerlib.videoProcessing.processing.VideoProccessin
 import tgio.github.com.mediapickerlib.videoProcessing.widget.RangeSeekBarView
 import tgio.github.com.mediapickerlib.videoProcessing.widget.SpacesItemDecoration2
 import tgio.github.com.mediapickerlib.videoProcessing.widget.VideoTrimmerAdapter
-import tgio.github.com.mediapickerlib.videoProcessing.widget.ZVideoView
 import java.io.File
 import kotlin.math.abs
 
@@ -38,7 +37,7 @@ class VideoTrimmerActivity : AppCompatActivity() {
     private var mMaxWidth = 0
 
     private lateinit var mLinearVideo: RelativeLayout
-    private lateinit var mVideoView: ZVideoView
+    private lateinit var mVideoView: VideoView
     private lateinit var ivPlayPause: ImageView
     private lateinit var mVideoThumbRecyclerView: RecyclerView
     private lateinit var mRangeSeekBarView: RangeSeekBarView
@@ -293,23 +292,18 @@ class VideoTrimmerActivity : AppCompatActivity() {
     }
 
     private fun videoPrepared(mp: MediaPlayer) {
-        val lp = mVideoView.layoutParams
+        val lp = mLinearVideo.layoutParams
         val videoWidth = mp.videoWidth
         val videoHeight = mp.videoHeight
-        val videoProportion = videoWidth.toFloat() / videoHeight.toFloat()
-        val screenWidth = mLinearVideo.width
         val screenHeight = mLinearVideo.height
         if (videoHeight > videoWidth) {
-            lp.width = screenWidth
-            lp.height = screenHeight
-//            (mLinearVideo.layoutParams as ConstraintLayout.LayoutParams).dimensionRatio = "H, ${lp.width},${lp.height}"
+            val h = screenHeight
+            lp.height = h
         } else {
-            lp.width = screenWidth
             val r = videoHeight / videoWidth.toFloat()
             lp.height = (lp.width * r).toInt()
-//            (mLinearVideo.layoutParams as ConstraintLayout.LayoutParams).dimensionRatio = "H, ${lp.width},${r}"
         }
-        mVideoView.layoutParams = lp
+        mLinearVideo.layoutParams = lp
         mDuration = mVideoView.duration
         if (!restoreState) {
             seekTo(mRedProgressBarPos)
