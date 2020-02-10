@@ -73,9 +73,9 @@ data class PickMediaResponse(
             promise: Promise
         ) {
             val uri = intent.data!!
-            val (_, size) = MetaDataUtils.getFileNameAndSize(context, uri)
+            val (_filename, size) = MetaDataUtils.getFileNameAndSize(context, uri)
 
-            val fileName = intent.getStringExtra(KEY_ORIGINAL_FILE_NAME)
+            val fileName = intent.getStringExtra(KEY_ORIGINAL_FILE_NAME) ?: _filename ?: ""
             var width: String? = null
             var height: String? = null
             var duration: String? = null
