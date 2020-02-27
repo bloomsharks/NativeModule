@@ -1,6 +1,10 @@
 package com.pckr;
 
+import android.graphics.Color;
+import android.os.Bundle;
+
 import com.facebook.react.ReactActivity;
+import org.devio.rn.splashscreen.SplashScreen;
 
 public class MainActivity extends ReactActivity {
 
@@ -11,5 +15,12 @@ public class MainActivity extends ReactActivity {
   @Override
   protected String getMainComponentName() {
     return "pckr";
+  }
+
+  @Override
+  protected void onCreate(Bundle savedInstanceState) {
+    SplashScreen.show(this, R.style.SplashTheme);
+    super.onCreate(savedInstanceState);
+    getWindow().setNavigationBarColor(Color.BLACK);
   }
 }

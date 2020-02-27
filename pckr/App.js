@@ -1,6 +1,7 @@
 import React from 'react';
 import PickerModule from 'react-native-picker-module';
-import {View, Text, Image, Button} from 'react-native';
+import {View, Text, Image, Button, StatusBar} from 'react-native';
+import SplashScreen from 'react-native-splash-screen';
 
 function Separator() {
   return (
@@ -20,13 +21,26 @@ export default class App extends React.Component {
     };
   }
 
+  componentDidMount() {
+    // do stuff while splash screen is shown
+      // After having done stuff (such as async tasks) hide the splash screen
+      setTimeout(function(){
+        SplashScreen.hide();
+      }, 700)
+  }
+
   render() {
     return (
       <View
         style={{
+          backgroundColor: 'white',
           width: '100%',
           height: '100%',
         }}>
+        <StatusBar 
+          backgroundColor="#000"
+          barStyle="light-content"
+          />
         <View
           style={{
             marginTop: 32,
