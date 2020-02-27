@@ -1,4 +1,4 @@
-package tgio.github.com.mediapickerlib.videoProcessing.processing
+package tgio.github.com.mediapickerlib.videoProcessing.proccessing
 
 import android.os.AsyncTask
 import com.arthenica.mobileffmpeg.Config

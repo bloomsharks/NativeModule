@@ -1,6 +1,5 @@
 package tgio.github.com.mediapickerlib.videoProcessing.widget
 
-import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,11 +13,8 @@ import com.bumptech.glide.request.RequestOptions
 import tgio.github.com.mediapickerlib.R
 
 class VideoTrimmerAdapter(
-    private val context: Context,
     private val thumbWidth: Int
-) :
-    RecyclerView.Adapter<VideoTrimmerAdapter.TrimmerViewHolder>() {
-    //    private val mBitmaps: MutableList<Bitmap> = ArrayList()
+) : RecyclerView.Adapter<VideoTrimmerAdapter.TrimmerViewHolder>() {
     private val intervals: ArrayList<Long> = arrayListOf()
     private var mVideoPath: String? = null
 
@@ -35,11 +31,10 @@ class VideoTrimmerAdapter(
         notifyDataSetChanged()
     }
 
-    private val mInflater: LayoutInflater = LayoutInflater.from(context)
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TrimmerViewHolder {
         return TrimmerViewHolder(
-            mInflater.inflate(R.layout.bloom_native_video_thumb_item_layout, parent, false),
+            LayoutInflater.from(parent.context)
+                .inflate(R.layout.bloom_native_video_thumb_item_layout, parent, false),
             thumbWidth
         )
     }
@@ -49,10 +44,10 @@ class VideoTrimmerAdapter(
             val interval: Long = intervals[position] * 1000
             val options = RequestOptions().frame(interval)
 
-            Glide.with(context)
+            Glide.with(holder.thumbImageView.context)
                 .asBitmap()
+//                .load("")
                 .load(mVideoPath)
-                .centerCrop()
                 .override(holder.thumbImageView.width, holder.thumbImageView.height)
                 .apply(options)
                 .downsample(DownsampleStrategy.CENTER_INSIDE)

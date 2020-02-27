@@ -3,9 +3,7 @@ package tgio.github.com.mediapickerlib
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import com.facebook.react.bridge.Arguments
-import com.facebook.react.bridge.Promise
-import com.facebook.react.bridge.WritableMap
+import android.os.Bundle
 
 data class PickMediaResponse(
     val uri: String,
@@ -18,8 +16,8 @@ data class PickMediaResponse(
     val thumbnail: String? = null
 ) {
 
-    fun toBundle(): WritableMap {
-        val map = Arguments.createMap()
+    fun toBundle(): Bundle {
+        val map = Bundle()
 
         map.putString("uri", uri)
         map.putString("fileName", fileName)
@@ -49,13 +47,14 @@ data class PickMediaResponse(
         private fun handlePhoto(
             context: Context,
             intent: Intent,
-            promise: Promise
+            resolve: (Bundle) -> Unit,
+            reject: (Throwable) -> Unit
         ) {
             val extras = intent.extras!!
             val uri = extras.getParcelable<Uri>("uri")!!
             val (fileName, size) = MetaDataUtils.getFileNameAndSize(context, uri)
 
-            promise.resolve(
+            resolve.invoke(
                 PickMediaResponse(
                     uri = uri.toString(),
                     fileName = fileName,
@@ -70,54 +69,63 @@ data class PickMediaResponse(
         private fun handleVideo(
             context: Context,
             intent: Intent,
-            promise: Promise
+            resolve: (Bundle) -> Unit,
+            reject: (Throwable) -> Unit
         ) {
-            val uri = intent.data!!
-            val (_filename, size) = MetaDataUtils.getFileNameAndSize(context, uri)
+            if(intent.data == null) {
+                reject.invoke(Error.UNKNOWN.toThrowable())
+            } else {
+                val uri = intent.data!!
+                //Viable if uri starts with Content or File
+                val (_fileName, _fileSize) = MetaDataUtils.getFileNameAndSize(context, uri)
+                //Alternate option for data
+                val fs = intent.getLongExtra(KEY_FILE_SIZE, _fileSize)
+                val fileName = intent.getStringExtra(KEY_ORIGINAL_FILE_NAME) ?: _fileName
 
-            val fileName = intent.getStringExtra(KEY_ORIGINAL_FILE_NAME) ?: _filename ?: ""
-            var width: String? = null
-            var height: String? = null
-            var duration: String? = null
-            var thumbnail: String? = null
+                var width = ""
+                var height = ""
+                var duration = ""
+                var thumbnail = ""
 
-            try {
-                val videoMetaData = MetaDataUtils.getVideoMetaData(
-                    context,
-                    uri,
-                    DEFAULT_COMPRESSION_QUALITY_THUMB
+                try {
+                    val videoMetaData = MetaDataUtils.getVideoMetaData(
+                        context,
+                        uri,
+                        DEFAULT_COMPRESSION_QUALITY_THUMB
+                    )
+                    width = videoMetaData.width
+                    height = videoMetaData.height
+                    duration = videoMetaData.durationMillis
+                    thumbnail = videoMetaData.thumbnailPath
+                } catch (e: Exception) {
+                    reject.invoke(e)
+                }
+
+                resolve.invoke(
+                    PickMediaResponse(
+                        uri = uri.toString(),
+                        fileName = fileName,
+                        fileSize = fs.toString(),
+                        type = CommonUtils.getMimeType(context, uri),
+                        thumbnail = thumbnail,
+                        height = height,
+                        width = width,
+                        duration = duration
+                    ).toBundle()
                 )
-                width = videoMetaData.width
-                height = videoMetaData.height
-                duration = videoMetaData.durationMillis
-                thumbnail = videoMetaData.thumbnailPath
-            } catch (e: Exception) {
-                promise.reject(e)
             }
-
-            promise.resolve(
-                PickMediaResponse(
-                    uri = uri.toString(),
-                    fileName = fileName,
-                    fileSize = size.toString(),
-                    type = CommonUtils.getMimeType(context, uri),
-                    thumbnail = thumbnail,
-                    height = height,
-                    width = width,
-                    duration = duration
-                ).toBundle()
-            )
         }
 
         private fun handleFile(
             context: Context,
             intent: Intent,
-            promise: Promise
+            resolve: (Bundle) -> Unit,
+            reject: (Throwable) -> Unit
         ) {
             val uri = intent.data!!
             val (fileName, size) = MetaDataUtils.getFileNameAndSize(context, uri)
 
-            promise.resolve(
+            resolve.invoke(
                 PickMediaResponse(
                     uri = uri.toString(),
                     fileName = fileName,
@@ -131,15 +139,16 @@ data class PickMediaResponse(
             context: Context,
             mediaRequest: PickMediaRequest,
             intent: Intent?,
-            promise: Promise
+            resolve: (Bundle) -> Unit,
+            reject: (Throwable) -> Unit
         ) {
             if (intent == null) {
-                promise.resolve(CustomError(message = "Intent is null.").toBundle())
+                resolve.invoke(CustomError(message = "Intent is null.").toBundle())
             } else when (mediaRequest.getRequestType()) {
-                PICK_REQUEST_TYPE_PHOTO -> handlePhoto(context, intent, promise)
-                PICK_REQUEST_TYPE_VIDEO -> handleVideo(context, intent, promise)
-                PICK_REQUEST_TYPE_FILES -> handleFile(context, intent, promise)
-                else -> promise.resolve(CustomError(message = "Unknown request type").toBundle())
+                PICK_REQUEST_TYPE_PHOTO -> handlePhoto(context, intent, resolve, reject)
+                PICK_REQUEST_TYPE_VIDEO -> handleVideo(context, intent, resolve, reject)
+                PICK_REQUEST_TYPE_FILES -> handleFile(context, intent, resolve, reject)
+                else -> reject.invoke(CustomError(message = "Unknown request type"))
             }
         }
     }

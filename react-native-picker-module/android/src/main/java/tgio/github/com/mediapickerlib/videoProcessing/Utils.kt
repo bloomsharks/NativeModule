@@ -9,7 +9,9 @@ object Utils {
 
     @Suppress("DEPRECATION")
     fun showProgressDialog(context: Context, msg: String, previousDialog: Dialog?): ProgressDialog {
-        dismissDialog(previousDialog)
+        dismissDialog(
+            previousDialog
+        )
         val mProgressDialog = ProgressDialog(context, ProgressDialog.THEME_DEVICE_DEFAULT_LIGHT)
         mProgressDialog.setMessage(msg)
         mProgressDialog.setCancelable(false)
@@ -22,7 +24,9 @@ object Utils {
         msg: String,
         previousDialog: Dialog?
     ): AlertDialog {
-        dismissDialog(previousDialog)
+        dismissDialog(
+            previousDialog
+        )
         val dialog = AlertDialog.Builder(context)
         dialog.setMessage(msg)
         dialog.setTitle("Error")
@@ -39,7 +43,7 @@ object Utils {
         }
     }
 
-    fun convertSecondsToTime(seconds: Long, delimiter: String = "."): String {
+    fun convertSecondsToTime(seconds: Long, delimiter: String = ":"): String {
         var timeStr: String? = null
         var hour = 0
         var minute = 0
@@ -50,13 +54,19 @@ object Utils {
             minute = seconds.toInt() / 60
             if (minute < 60) {
                 second = seconds.toInt() % 60
-                timeStr = minute.toString() + delimiter + unitFormat(second)
+                timeStr = minute.toString() + delimiter + unitFormat(
+                    second
+                )
             } else {
                 hour = minute / 60
                 if (hour > 99) return "99${delimiter}59${delimiter}59"
                 minute %= 60
                 second = (seconds - hour * 3600 - minute * 60).toInt()
-                timeStr = hour.toString() + delimiter + unitFormat(minute) + delimiter + unitFormat(second)
+                timeStr = hour.toString() + delimiter + unitFormat(
+                    minute
+                ) + delimiter + unitFormat(
+                    second
+                )
             }
         }
         return timeStr

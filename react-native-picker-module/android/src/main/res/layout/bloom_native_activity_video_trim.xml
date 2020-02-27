@@ -11,10 +11,22 @@
   <androidx.appcompat.widget.Toolbar
       android:id="@+id/toolbar"
       android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:minHeight="?attr/actionBarSize"
-      constraint:layout_constraintTop_toTopOf="parent"
-      constraint:navigationIcon="@drawable/bloom_native_ic_back">
+      android:layout_height="44dp"
+      android:minHeight="44dp"
+      constraint:contentInsetEnd="0dp"
+      constraint:contentInsetStart="0dp"
+      constraint:layout_constraintTop_toTopOf="parent">
+
+    <ImageButton
+        android:id="@+id/ibtnBack"
+        android:layout_width="wrap_content"
+        android:layout_height="44dp"
+        android:adjustViewBounds="true"
+        android:background="@android:color/transparent"
+        android:padding="0dp"
+        android:scaleType="centerInside"
+        android:src="@drawable/bloom_native_ic_back"
+        android:stateListAnimator="@null" />
 
     <TextView
         android:id="@+id/toolbar_title"
@@ -22,22 +34,24 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
+        android:fontFamily="@font/proxima_nova_regular"
         android:text="Cutter"
-        android:textColor="#000"
-        android:textSize="15sp" />
+        android:textColor="#1B252E"
+        android:textSize="15sp"
+        android:textStyle="bold" />
 
     <Button
         android:id="@+id/btnSave"
         android:layout_width="wrap_content"
         android:layout_height="44dp"
         android:layout_gravity="end"
-        android:layout_marginTop="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginBottom="8dp"
         android:backgroundTint="#FFFFFF"
         android:enabled="true"
+        android:fontFamily="@font/proxima_nova_regular"
+        android:paddingEnd="16dp"
         android:stateListAnimator="@null"
-        android:text="Done"
+        android:text="Next"
+        android:textAlignment="textEnd"
         android:textAllCaps="false"
         android:textColor="@color/bloom_native_main"
         android:textSize="15sp"
@@ -54,7 +68,7 @@
       constraint:layout_constraintStart_toStartOf="parent"
       constraint:layout_constraintTop_toBottomOf="@+id/toolbar">
 
-    <VideoView
+    <net.protyposis.android.mediaplayer.VideoView
         android:id="@+id/video_loader"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -66,6 +80,7 @@
       android:id="@+id/overlay"
       android:layout_width="0dp"
       android:layout_height="0dp"
+      android:background="#33000000"
       constraint:layout_constraintBottom_toBottomOf="@+id/layout_surface_view"
       constraint:layout_constraintEnd_toEndOf="@+id/layout_surface_view"
       constraint:layout_constraintStart_toStartOf="@+id/layout_surface_view"
@@ -87,7 +102,9 @@
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:layout_marginTop="12dp"
-      android:textColor="#000"
+      android:fontFamily="@font/proxima_nova_regular"
+      android:textColor="#1B252E"
+      android:textSize="13sp"
       constraint:layout_constraintEnd_toEndOf="parent"
       constraint:layout_constraintStart_toStartOf="parent"
       constraint:layout_constraintTop_toBottomOf="@+id/layout_surface_view"
@@ -97,6 +114,7 @@
       android:id="@+id/layout"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
+      constraint:layout_constraintBottom_toTopOf="@+id/tvStaticText"
       constraint:layout_constraintTop_toBottomOf="@+id/tvDuration">
 
     <FrameLayout
@@ -104,34 +122,18 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-      <androidx.recyclerview.widget.RecyclerView
-          android:id="@+id/video_frames_recyclerView"
+      <tgio.github.com.mediapickerlib.videoProcessing.widget.TimelineView
+          android:id="@+id/timelineView"
           android:layout_width="match_parent"
           android:layout_height="@dimen/bloom_native_frames_video_height"
           android:layout_gravity="bottom"
           tools:background="@android:color/holo_green_light" />
-
-      <ImageView
-          android:id="@+id/positionIcon"
-          android:layout_width="2dp"
-          android:layout_height="@dimen/bloom_native_frames_video_height"
-          android:layout_gravity="bottom"
-          android:layout_marginLeft="@dimen/bloom_native_thumb_width"
-          android:layout_marginTop="10dp"
-          android:contentDescription="@null"
-          android:src="@drawable/bloom_native_thumb_progress" />
 
       <LinearLayout
           android:layout_width="match_parent"
           android:layout_height="130dp"
           android:layout_gravity="bottom"
           android:orientation="horizontal">
-
-        <View
-            android:layout_width="15dp"
-            android:layout_height="@dimen/bloom_native_frames_video_height"
-            android:layout_gravity="bottom"
-            android:background="@color/bloom_native_shadow_color" />
 
         <LinearLayout
             android:id="@+id/seekBarLayout"
@@ -141,12 +143,6 @@
             android:layout_weight="1"
             android:gravity="bottom"
             android:orientation="vertical" />
-
-        <View
-            android:layout_width="15dp"
-            android:layout_height="@dimen/bloom_native_frames_video_height"
-            android:layout_gravity="bottom"
-            android:background="@color/bloom_native_shadow_color" />
       </LinearLayout>
     </FrameLayout>
   </RelativeLayout>
@@ -156,29 +152,33 @@
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:gravity="center"
-      tools:text="Lorem ipsum dolor set amet"
-      android:textColor="#000"
       android:paddingLeft="15dp"
       android:paddingRight="15dp"
+      android:textColor="#000"
       android:textSize="15sp"
       constraint:layout_constraintBottom_toTopOf="@+id/btnReset"
       constraint:layout_constraintEnd_toEndOf="parent"
+      constraint:layout_constraintHorizontal_bias="0.5"
       constraint:layout_constraintStart_toStartOf="parent"
-      constraint:layout_constraintTop_toBottomOf="@+id/layout" />
+      constraint:layout_constraintTop_toBottomOf="@+id/layout"
+      tools:text="Lorem ipsum dolor set amet" />
 
   <Button
       android:id="@+id/btnReset"
       android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:backgroundTint="@color/bloom_native_main"
+      android:layout_height="30dp"
+      android:background="@drawable/bloom_native_cta_button_background"
+      android:fontFamily="@font/proxima_nova_medium"
       android:paddingLeft="34.5dp"
       android:paddingRight="34.5dp"
+      android:stateListAnimator="@null"
       android:text="Reset"
       android:textAllCaps="false"
       android:textColor="#FFF"
       android:textSize="15sp"
       constraint:layout_constraintBottom_toBottomOf="parent"
       constraint:layout_constraintEnd_toEndOf="parent"
+      constraint:layout_constraintHorizontal_bias="0.5"
       constraint:layout_constraintStart_toStartOf="parent"
       constraint:layout_constraintTop_toBottomOf="@+id/tvStaticText" />
 

@@ -70,9 +70,6 @@ object ObjectMapper {
                     maxDurationSeconds = if(options.hasKey(KEY_MAX_SECONDS)) {
                         options.getInt(KEY_MAX_SECONDS)
                     } else DEFAULT_MAX_SECONDS,
-                    staticText = if(options.hasKey(KEY_STATIC_TEXT)) {
-                        options.getString(KEY_STATIC_TEXT)
-                    } else DEFAULT_STATIC_TEXT,
                     maxDisplayedThumbs = if(options.hasKey(KEY_MAX_DISPLAYED_THUMBS)) {
                         options.getInt(KEY_MAX_DISPLAYED_THUMBS)
                     } else DEFAULT_MAX_DISPLAYED_THUMBS,

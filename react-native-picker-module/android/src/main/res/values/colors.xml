@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="bloom_native_main">#497CFA</color>
+    <color name="bloom_native_dark">#1B252E</color>
     <color name="bloom_native_shadow_color">#80FFFFFF</color>
 </resources>

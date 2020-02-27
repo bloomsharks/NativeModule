@@ -1,4 +1,4 @@
-package tgio.github.com.mediapickerlib.videoProcessing.processing
+package tgio.github.com.mediapickerlib.videoProcessing.proccessing
 
 import tgio.github.com.mediapickerlib.videoProcessing.callbacks.VideoCompressListener
 import tgio.github.com.mediapickerlib.videoProcessing.callbacks.VideoTrimListener
@@ -23,9 +23,9 @@ object VideoProccessing {
         val start = convertSecondsToTime(startMs / 1000)
         val duration = convertSecondsToTime((endMs - startMs) / 1000)
         val command = if(encode) {
-            "-ss $start -i \"$inputFile\" -t $duration -async 1 $outputFile"
+            "-ss $start -i $inputFile -t $duration -async 1 $outputFile"
         } else {
-            "-ss $start -i \"$inputFile\" -t $duration -async 1 -codec copy $outputFile"
+            "-ss $start -i $inputFile -t $duration -async 1 -codec copy $outputFile"
         }
         try {
             val tempOutFile = outputFile
@@ -50,9 +50,15 @@ object VideoProccessing {
 
     fun compress(
         inputFile: String,
-        outputFile: String,
+        _outputFile: String,
         callback: VideoCompressListener
     ) {
+        var outputFile = _outputFile
+        val timeStamp =
+            SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
+                .format(Date())
+        val outputName = "compressedVideo_$timeStamp.mp4"
+        outputFile = "$outputFile/$outputName"
         val cmd =
             "-threads 2 -y -i $inputFile -strict -2 -vcodec libx264 -preset ultrafast -crf 28 -acodec copy -ac 2 $outputFile"
         val command = cmd//.split(" ").toTypedArray()

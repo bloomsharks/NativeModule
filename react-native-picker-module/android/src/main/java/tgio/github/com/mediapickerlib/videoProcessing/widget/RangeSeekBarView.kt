@@ -4,14 +4,14 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
 import android.graphics.drawable.Drawable
-import android.os.Bundle
-import android.os.Parcelable
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
+import tgio.github.com.mediapickerlib.DEBUG_TOUCH_AREA_ENABLED
+import tgio.github.com.mediapickerlib.DEFAULT_MAX_DURATION
 import tgio.github.com.mediapickerlib.DEFAULT_MIN_DURATION
 import tgio.github.com.mediapickerlib.R
 import tgio.github.com.mediapickerlib.videoProcessing.Utils
@@ -25,12 +25,11 @@ import kotlin.math.round
 class RangeSeekBarView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0,
-    mLeftProgressPos: Long,
-    mRightProgressPos: Long
-) : View(context, attrs, defStyleAttr)  {
+    defStyleAttr: Int = 0
+) : View(context, attrs, defStyleAttr) {
     private var mActivePointerId = INVALID_POINTER_ID
     private var mMinShootTime = DEFAULT_MIN_DURATION
+    private var mMaxShootTime = DEFAULT_MAX_DURATION
     private var absoluteMinValuePrim = 0.0
     private var absoluteMaxValuePrim = 0.0
     private var normalizedMinValue = 0.0
@@ -38,36 +37,75 @@ class RangeSeekBarView @JvmOverloads constructor(
     private var normalizedMinValueTime = 0.0
     private var normalizedMaxValueTime = 1.0
     private var mScaledTouchSlop = 0
+    private var progressThumb: Bitmap
     private var thumbImageLeft: Bitmap
     private var thumbImageRight: Bitmap
-    private var thumbPressedImage: Bitmap
     private var paint: Paint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val mLine = Paint()
     private val mVideoTrimTimePaintL = Paint()
     private val mVideoTrimTimePaintR = Paint()
     private val mShadow = Paint()
+    private val mTouchLeft = Paint()
+    private val mTouchRight = Paint()
     private var thumbWidth = 0
     private var thumbHalfWidth = 0f
     private val padding = 0f
     private var mStartPosition: Long = 0
     private var mEndPosition: Long = 0
-    private var isTouchDown = false
     private var mDownMotionX = 0f
     private var mIsDragging = false
     private var pressedThumb: Thumb? = null
-    private var isMin = false
-    private var min_width = 1.0
-    private var mPaddingTop = 0
+    private var minWidth = 1.0
+    private var min = 0.0
+    private var screenWidth = 0
+    private var progressWidth = 0
+    private var extraTouchArea = 0
+    private var timeTextPadding = 0
     private var textPositionY = 0
-    private var linePositionY = 0
-    private var lineHeight = 0
-    private var lineThickness = 0
+
+    private var mPaddingLeft = 0
+    private var mPaddingRight = 0
+    private var thumbCornerRadius = 0
+
+    private var leftThumbsTime = Utils.convertSecondsToTime(0)
+    private var rightThumbsTime = Utils.convertSecondsToTime(0)
+    private var leftPos = 0F
+    private var progressPos = 0F
+    private var leftTextPos = 0F
+    private var rightPos = 0F
+    private var rightTextPos = 0F
 
     var isNotifyWhileDragging = false
     private var mRangeSeekBarChangeListener: OnRangeSeekBarChangeListener? = null
 
+    private val valueLength: Int
+        get() = getSafeWidth() - mPaddingLeft - mPaddingRight
+
+    var selectedMinValue: Long
+        get() = normalizedToValue(normalizedMinValueTime)
+        set(value) {
+            if (0.0 == absoluteMaxValuePrim - absoluteMinValuePrim) {
+                setNormalizedMinValue(0.0)
+            } else {
+                setNormalizedMinValue(valueToNormalized(value))
+            }
+        }
+
+    var selectedMaxValue: Long
+        get() {
+            val m = normalizedToValue(normalizedMaxValueTime)
+            return m
+        }
+        set(value) {
+            if (0.0 == absoluteMaxValuePrim - absoluteMinValuePrim) {
+                setNormalizedMaxValue(1.0)
+            } else {
+                setNormalizedMaxValue(valueToNormalized(value))
+            }
+        }
+
+
     enum class Thumb {
-        MIN, MAX
+        L, R
     }
 
     fun reset() {
@@ -75,16 +113,67 @@ class RangeSeekBarView @JvmOverloads constructor(
         normalizedMaxValue = 1.0
         normalizedMinValueTime = 0.0
         normalizedMaxValueTime = 1.0
+
+        setLeftPos(0F)
+        setRightPos(screenWidth.toFloat())
+        setProgressPos(0F)
+
+        extraMsFromTimeline = 0
+
+        selectedMinValue = 0
+        selectedMaxValue = mMaxShootTime
+        setStartEndTime(0, mMaxShootTime)
+        calcDrawPositions()
+
+        leftThumbsTime = Utils.convertSecondsToTime(mStartPosition / 1000)
+        rightThumbsTime = Utils.convertSecondsToTime(mEndPosition / 1000)
+        invalidate()
+    }
+
+    fun setParams(
+        startPosition: Long,
+        endPosition: Long,
+        minDuration: Long,
+        maxDuration: Long
+    ) {
+        absoluteMinValuePrim = startPosition.toDouble()
+        absoluteMaxValuePrim = endPosition.toDouble()
+        mMinShootTime = minDuration
+        mMaxShootTime = maxDuration
+
+        min = (mMinShootTime / (absoluteMaxValuePrim - absoluteMinValuePrim)) * (width - mPaddingLeft - mPaddingRight - thumbWidth * 2)
+        minWidth = if (absoluteMaxValuePrim > 5 * 60 * 1000) {
+            val df = DecimalFormat("0.0000")
+            df.format(min).toDouble()
+        } else {
+            round(min + 0.5)
+        }
     }
 
     init {
-        this.absoluteMinValuePrim = mLeftProgressPos.toDouble()
-        this.absoluteMaxValuePrim = mRightProgressPos.toDouble()
-        mPaddingTop = context.resources.getDimensionPixelOffset(R.dimen.bloom_native_rangeBarPaddingTop)
-        textPositionY = context.resources.getDimensionPixelOffset(R.dimen.bloom_native_rangeBarTextPaddingTop)
-        linePositionY = context.resources.getDimensionPixelOffset(R.dimen.bloom_native_linePositionY)
-        lineHeight = context.resources.getDimensionPixelOffset(R.dimen.bloom_native_lineHeight)
-        lineThickness = context.resources.getDimensionPixelOffset(R.dimen.bloom_native_lineThickness)
+        screenWidth = context.resources.displayMetrics.widthPixels
+        progressWidth =
+            context.resources.getDimensionPixelOffset(R.dimen.bloom_native_progress_thumb_width)
+        extraTouchArea =
+            context.resources.getDimensionPixelOffset(R.dimen.bloom_native_extraTouchArea)
+        timeTextPadding =
+            context.resources.getDimensionPixelOffset(R.dimen.bloom_native_timeTextPadding)
+        textPositionY =
+            context.resources.getDimensionPixelOffset(R.dimen.bloom_native_rangeBarTextPaddingTop)
+
+        setPadding(
+            0,//context.resources.getDimensionPixelOffset(R.dimen.paddingTimeline),
+            context.resources.getDimensionPixelOffset(R.dimen.bloom_native_rangeBarPaddingTop),
+            0,//context.resources.getDimensionPixelOffset(R.dimen.paddingTimeline),
+            0
+        )
+
+        thumbCornerRadius =
+            context.resources.getDimensionPixelOffset(R.dimen.bloom_native_progress_thumb_corner_radius)
+        mPaddingLeft =
+            context.resources.getDimensionPixelOffset(R.dimen.bloom_native_paddingTimeline)
+        mPaddingRight =
+            context.resources.getDimensionPixelOffset(R.dimen.bloom_native_paddingTimeline)
 
         isFocusable = true
         isFocusableInTouchMode = true
@@ -92,37 +181,55 @@ class RangeSeekBarView @JvmOverloads constructor(
         thumbImageLeft = drawableToBitmap(
             ResourcesCompat.getDrawable(
                 context.resources,
-                R.drawable.bloom_native_thumb,
+                R.drawable.bloom_native_thumb_l,
+                context.theme
+            )
+        )!!
+        thumbImageRight = drawableToBitmap(
+            ResourcesCompat.getDrawable(
+                context.resources,
+                R.drawable.bloom_native_thumb_r,
+                context.theme
+            )
+        )!!
+        progressThumb = drawableToBitmap(
+            ResourcesCompat.getDrawable(
+                context.resources,
+                R.drawable.bloom_native_thumb_progress,
                 context.theme
             )
         )!!
         thumbWidth = thumbImageLeft.width
-        thumbImageRight = thumbImageLeft
-        thumbPressedImage = thumbImageLeft
 
-        mLine.isAntiAlias = false
-        mLine.color = Color.BLACK
-        mLine.strokeWidth = lineThickness.toFloat()
 
         thumbHalfWidth = thumbWidth / 2.toFloat()
         val shadowColor = ContextCompat.getColor(context, R.color.bloom_native_shadow_color)
         mShadow.isAntiAlias = true
         mShadow.color = shadowColor
+
+        mTouchLeft.isAntiAlias = true
+        mTouchLeft.color = Color.GREEN
+        mTouchLeft.alpha = 100
+
+        mTouchRight.isAntiAlias = true
+        mTouchRight.color = Color.RED
+        mTouchRight.alpha = 100
+
         mVideoTrimTimePaintL.strokeWidth = 3f
         mVideoTrimTimePaintL.textSize = 13 * resources.displayMetrics.scaledDensity
         mVideoTrimTimePaintL.isAntiAlias = true
-        mVideoTrimTimePaintL.color = Color.BLACK
+        mVideoTrimTimePaintL.color = ContextCompat.getColor(context, R.color.bloom_native_dark)
+        mVideoTrimTimePaintL.typeface =
+            ResourcesCompat.getFont(getContext(), R.font.proxima_nova_regular)
         mVideoTrimTimePaintL.textAlign = Paint.Align.LEFT
         mVideoTrimTimePaintR.strokeWidth = 3f
-        mVideoTrimTimePaintR.color = Color.BLACK
+        mVideoTrimTimePaintR.color = ContextCompat.getColor(context, R.color.bloom_native_dark)
         mVideoTrimTimePaintR.textSize = 13 * resources.displayMetrics.scaledDensity
         mVideoTrimTimePaintR.isAntiAlias = true
-        mVideoTrimTimePaintR.color = Color.BLACK
+        mVideoTrimTimePaintR.typeface =
+            ResourcesCompat.getFont(getContext(), R.font.proxima_nova_regular)
         mVideoTrimTimePaintR.textAlign = Paint.Align.RIGHT
-    }
-
-    fun setMinDuration(minDuration: Long) {
-        mMinShootTime = minDuration
+        calcDrawPositions()
     }
 
     private fun drawableToBitmap(drawable: Drawable?): Bitmap? {
@@ -141,135 +248,232 @@ class RangeSeekBarView @JvmOverloads constructor(
         }
     }
 
-    @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        val bg_middle_left = 0f
-        val bg_middle_right = width - paddingRight.toFloat()
-        val rangeL = normalizedToScreen(normalizedMinValue)
-        val rangeR = normalizedToScreen(normalizedMaxValue)
-        val leftRect = Rect(
-            bg_middle_left.toInt(),
-            mPaddingTop,
-            rangeL.toInt(),
-            height
-        )
-        val rightRect = Rect(
-            rangeR.toInt(),
-            mPaddingTop,
-            bg_middle_right.toInt(),
-            height
-        )
-        canvas.drawRect(leftRect, mShadow)
-        canvas.drawRect(rightRect, mShadow)
+        if (width > 0) {
+            drawShadows(canvas)
+            drawVideoTrimTimeText(canvas)
 
-        drawThumb(normalizedToScreen(normalizedMinValue), false, canvas, true)
-        drawThumb(normalizedToScreen(normalizedMaxValue), false, canvas, false)
-        drawVideoTrimTimeText(canvas)
-        drawLines(canvas)
+            drawTouchAreas(canvas)
+
+
+            drawThumb(leftPos, canvas, true)
+            drawProgress(canvas)
+            drawThumb(rightPos, canvas, false)
+
+            drawMarkers(canvas)
+        }
+    }
+
+    private val markerPaint = Paint().apply {
+        color = Color.RED
+        strokeWidth = progressWidth.toFloat()
+        alpha = 100
+    }
+
+    private fun drawMarkers(canvas: Canvas) {
+        if(DEBUG_TOUCH_AREA_ENABLED.not()) {
+            return
+        }
+        val startX = mPaddingLeft.toFloat() + thumbWidth + (progressWidth / 2)
+        val endX = width - mPaddingRight.toFloat() - thumbWidth - (progressWidth / 2)
+        val lengthX = endX - startX
+        canvas.drawLine(
+            startX,
+            paddingTop.toFloat(),
+            startX,
+            height.toFloat(),
+            markerPaint
+        )
+        canvas.drawLine(
+            (lengthX / 3F) + startX,
+            paddingTop.toFloat(),
+            (lengthX / 3F) + startX,
+            height.toFloat(),
+            markerPaint
+        )
+        canvas.drawLine(
+            ((lengthX / 3F) * 2) + startX,
+            paddingTop.toFloat(),
+            ((lengthX / 3F) * 2) + startX,
+            height.toFloat(),
+            markerPaint
+        )
+        canvas.drawLine(
+            endX,
+            paddingTop.toFloat(),
+            endX,
+            height.toFloat(),
+            markerPaint
+        )
+    }
+
+    private fun drawTouchAreas(canvas: Canvas) {
+        if (DEBUG_TOUCH_AREA_ENABLED.not()) {
+            return
+        }
+        canvas.drawRect(
+            Rect(
+                leftPos.toInt() - extraTouchArea,
+                paddingTop,
+                leftPos.toInt() + thumbWidth + extraTouchArea,
+                height
+            ),
+            mTouchLeft
+        )
+        canvas.drawRect(
+            Rect(
+                rightPos.toInt() - extraTouchArea,
+                paddingTop,
+                rightPos.toInt() + thumbWidth + extraTouchArea,
+                height
+            ),
+            mTouchRight
+        )
+    }
+
+    private fun drawShadows(canvas: Canvas) {
+        canvas.drawRect(
+            Rect(
+                0,
+                paddingTop,
+                (leftPos + thumbCornerRadius + 3).toInt(),
+                height
+            ),
+            mShadow
+        )
+        canvas.drawRect(
+            Rect(
+                rightPos.toInt() + thumbWidth - thumbCornerRadius - 3,
+                paddingTop,
+                getSafeWidth(),
+                height
+            ),
+            mShadow
+        )
     }
 
     private fun drawThumb(
         screenCoord: Float,
-        pressed: Boolean,
         canvas: Canvas,
         isLeft: Boolean
     ) {
         canvas.drawBitmap(
-            if (pressed) {
-                thumbPressedImage
-            } else if (isLeft) thumbImageLeft else thumbImageRight,
-            screenCoord - if (isLeft) 0 else thumbWidth,
-            mPaddingTop.toFloat(),
+            if (isLeft) thumbImageLeft else thumbImageRight,
+            screenCoord,
+            paddingTop.toFloat(),
             paint
         )
     }
 
-    private fun drawLines(canvas: Canvas) {
-        val leftPos = normalizedToScreen(normalizedMinValue)
-        val rightPos = normalizedToScreen(normalizedMaxValue)
-
-        canvas.drawLine(
-            leftPos + thumbHalfWidth,
-            textPositionY + linePositionY.toFloat(),
-            leftPos + thumbHalfWidth,
-            textPositionY + lineHeight.toFloat(),
-            mLine
-        )
-        canvas.drawLine(
-            rightPos - thumbHalfWidth,
-            textPositionY + linePositionY.toFloat(),
-            rightPos - thumbHalfWidth,
-            textPositionY + lineHeight.toFloat(),
-            mLine
+    private fun drawProgress(
+        canvas: Canvas
+    ) {
+        canvas.drawBitmap(
+            progressThumb,
+            progressPos,
+            paddingTop.toFloat(),
+            paint
         )
     }
 
-    private fun drawVideoTrimTimeText(canvas: Canvas) {
-        val leftThumbsTime = Utils.convertSecondsToTime(mStartPosition)
-        val rightThumbsTime = Utils.convertSecondsToTime(mEndPosition)
+    fun getProgressPos() = progressPos
+    fun getRightPos() = rightPos
+    fun getLeftPos() = leftPos
 
-        var leftPos = normalizedToScreen(normalizedMinValue)
-        var rightPos = normalizedToScreen(normalizedMaxValue)
+    fun setProgressPos(value: Float) {
+        val mostLeft = leftPos + thumbWidth
+        val mostRight = rightPos - progressWidth
+        progressPos = max(mostLeft, min(value, mostRight))
+        invalidate()
+    }
 
+    private fun setLeftPos(value: Float) {
+        val mostLeft = mPaddingLeft.toFloat()
+        val mostRight = rightPos - progressWidth - thumbWidth - minWidth
+        leftPos = max(mostLeft, min(value, mostRight.toFloat()))
+    }
 
+    private fun setRightPos(value: Float) {
+        val mostLeft = leftPos + progressWidth + thumbWidth + minWidth
+        val mostRight = width - thumbWidth - mPaddingRight
+        rightPos = min(mostRight.toFloat(), max(mostLeft.toFloat(), value))
+    }
+
+    private fun calcDrawPositions() {
+        if (pressedThumb == Thumb.L) {
+            setLeftPos(normalizedToScreen(normalizedMinValue))
+        } else if (pressedThumb == Thumb.R) {
+            setRightPos(normalizedToScreen(normalizedMaxValue) - thumbWidth - mPaddingLeft)
+        } else if (mIsSeeking.not()) {
+            setLeftPos(normalizedToScreen(normalizedMinValue))
+            setRightPos(normalizedToScreen(normalizedMaxValue) - thumbWidth - mPaddingLeft)
+        }
+
+        setProgressPos(leftPos)
+
+        leftTextPos = leftPos
+        rightTextPos = rightPos
+        calcTextPositions()
+    }
+
+    private fun calcTextPositions() {
         val leftBounds = Rect()
         mVideoTrimTimePaintL.getTextBounds(leftThumbsTime, 0, leftThumbsTime.length, leftBounds)
         val leftWidth = leftBounds.width()
+        val leftX = leftTextPos + leftWidth + timeTextPadding
 
         val rightBounds = Rect()
         mVideoTrimTimePaintL.getTextBounds(rightThumbsTime, 0, rightThumbsTime.length, rightBounds)
         val rightWidth = leftBounds.width()
-
-
-        val leftX = leftPos + leftWidth + 10
-        val rightX = rightPos - rightWidth - 10
+        val rightX = rightTextPos - rightWidth - timeTextPadding
 
 
         val diff = abs(leftX - rightX)
 
         if (leftX >= rightX) {
-            if (rightPos >= width.toFloat()) {
-                leftPos -= diff
+            if (rightTextPos + thumbWidth + mPaddingRight >= getSafeWidth().toFloat()) {
+                leftTextPos -= diff
+            } else if (leftTextPos <= mPaddingLeft) {
+                rightTextPos += diff
             } else {
-                leftPos -= diff / 2
+                leftTextPos -= diff / 2
+                rightTextPos += diff / 2
             }
         }
+    }
 
-        if (rightX <= leftX) {
-            if (leftPos <= 0F) {
-                rightPos += diff
-            } else {
-                rightPos += diff / 2
-            }
-        }
+    private fun drawVideoTrimTimeText(canvas: Canvas) {
         canvas.drawText(
             leftThumbsTime,
-            max(0F, leftPos),
+            max(mPaddingRight.toFloat(), leftTextPos),
             textPositionY.toFloat(),
             mVideoTrimTimePaintL
         )
         canvas.drawText(
             rightThumbsTime,
-            min(width.toFloat(), rightPos),
+            min(width - mPaddingRight.toFloat(), rightTextPos + thumbWidth),
             textPositionY.toFloat(),
             mVideoTrimTimePaintR
         )
     }
 
+    private var xDiff = 0F
+
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        if (isTouchDown) {
-            return super.onTouchEvent(event)
-        }
         if (event.pointerCount > 1) {
             return super.onTouchEvent(event)
         }
         if (!isEnabled) return false
-        if (absoluteMaxValuePrim <= mMinShootTime) {
+        if (absoluteMaxValuePrim <= mMinShootTime || event.pointerCount > 1) {
             return super.onTouchEvent(event)
         }
         val pointerIndex: Int
         val action = event.action
+
+
+        val eventX = event.getX(0)
+
         when (action and MotionEvent.ACTION_MASK) {
             MotionEvent.ACTION_DOWN -> {
                 mActivePointerId = event.getPointerId(event.pointerCount - 1)
@@ -278,63 +482,67 @@ class RangeSeekBarView @JvmOverloads constructor(
                 pressedThumb = evalPressedThumb(mDownMotionX)
                 if (pressedThumb == null) return super.onTouchEvent(event)
                 isPressed = true
-                onStartTrackingTouch()
-                trackTouchEvent(event)
+
+                if (pressedThumb == Thumb.L) {
+                    xDiff = mDownMotionX - leftPos
+                } else if (pressedThumb == Thumb.R) {
+                    xDiff = mDownMotionX - rightPos
+                }
+
+                mIsDragging = true
+
                 attemptClaimDrag()
+
                 if (mRangeSeekBarChangeListener != null) {
                     mRangeSeekBarChangeListener!!.onRangeSeekBarValuesChanged(
                         this,
                         selectedMinValue,
                         selectedMaxValue,
                         MotionEvent.ACTION_DOWN,
-                        isMin,
                         pressedThumb
                     )
                 }
             }
             MotionEvent.ACTION_MOVE -> if (pressedThumb != null) {
-                if (mIsDragging) {
-                    trackTouchEvent(event)
-                } else {
-                    pointerIndex = event.findPointerIndex(mActivePointerId)
-                    val x = event.getX(pointerIndex)
-                    if (abs(x - mDownMotionX) > mScaledTouchSlop) {
-                        isPressed = true
-                        invalidate()
-                        onStartTrackingTouch()
-                        trackTouchEvent(event)
-                        attemptClaimDrag()
-                    }
+                if (Thumb.L == pressedThumb) {
+                    moveThumbL(eventX, xDiff)
+                } else if (Thumb.R == pressedThumb) {
+                    moveThumbR(eventX, xDiff)
                 }
-                if (isNotifyWhileDragging && mRangeSeekBarChangeListener != null) {
-                    mRangeSeekBarChangeListener!!.onRangeSeekBarValuesChanged(
-                        this, selectedMinValue, selectedMaxValue, MotionEvent.ACTION_MOVE,
-                        isMin, pressedThumb
+
+                setStartEndTime(
+                    selectedMinValue + extraMsFromTimeline,
+                    selectedMaxValue + extraMsFromTimeline
+                )
+
+                if (isNotifyWhileDragging) {
+                    mRangeSeekBarChangeListener?.onRangeSeekBarValuesChanged(
+                        bar = this,
+                        minValue = selectedMinValue,
+                        maxValue = selectedMaxValue,
+                        action = MotionEvent.ACTION_MOVE,
+                        pressedThumb = pressedThumb
                     )
                 }
             }
             MotionEvent.ACTION_UP -> {
-                if (mIsDragging) {
-                    trackTouchEvent(event)
-                    onStopTrackingTouch()
-                    isPressed = false
-                } else {
-                    onStartTrackingTouch()
-                    trackTouchEvent(event)
-                    onStopTrackingTouch()
-                }
-                invalidate()
-                if (mRangeSeekBarChangeListener != null) {
-                    mRangeSeekBarChangeListener!!.onRangeSeekBarValuesChanged(
-                        this,
-                        selectedMinValue,
-                        selectedMaxValue,
-                        MotionEvent.ACTION_UP,
-                        isMin,
-                        pressedThumb
-                    )
-                }
+                xDiff = 0F
                 pressedThumb = null
+                mIsDragging = false
+                isPressed = false
+
+                setStartEndTime(
+                    selectedMinValue + extraMsFromTimeline,
+                    selectedMaxValue + extraMsFromTimeline
+                )
+                invalidate()
+                mRangeSeekBarChangeListener?.onRangeSeekBarValuesChanged(
+                    bar = this,
+                    minValue = selectedMinValue,
+                    maxValue = selectedMaxValue,
+                    action = MotionEvent.ACTION_UP,
+                    pressedThumb = pressedThumb
+                )
             }
             MotionEvent.ACTION_POINTER_DOWN -> {
                 val index = event.pointerCount - 1
@@ -348,7 +556,7 @@ class RangeSeekBarView @JvmOverloads constructor(
             }
             MotionEvent.ACTION_CANCEL -> {
                 if (mIsDragging) {
-                    onStopTrackingTouch()
+                    mIsDragging = false
                     isPressed = false
                 }
                 invalidate()
@@ -357,6 +565,19 @@ class RangeSeekBarView @JvmOverloads constructor(
             }
         }
         return true
+    }
+
+    fun isRightThumbPressed(): Boolean {
+        return (pressedThumb == Thumb.R)
+    }
+
+    fun alignProgressPosition() {
+        if (isRightThumbPressed()) {
+            setProgressPos(rightPos)
+        } else {
+            setProgressPos(0F)
+        }
+        invalidate()
     }
 
     private fun onSecondaryPointerUp(ev: MotionEvent) {
@@ -370,131 +591,84 @@ class RangeSeekBarView @JvmOverloads constructor(
         }
     }
 
-    private fun trackTouchEvent(event: MotionEvent) {
-        if (event.pointerCount > 1) return
-        val pointerIndex = event.findPointerIndex(mActivePointerId)
-        var x = 0f
-        x = try {
-            event.getX(pointerIndex)
-        } catch (e: Exception) {
-            return
-        }
-        if (Thumb.MIN == pressedThumb) {
-            setNormalizedMinValue(screenToNormalized(x, 0))
-        } else if (Thumb.MAX == pressedThumb) {
-            setNormalizedMaxValue(screenToNormalized(x, 1))
-        }
+    private fun moveThumbL(screenCoordX: Float, mod: Float) {
+        leftThumbsTime = Utils.convertSecondsToTime(mStartPosition / 1000)
+        setNormalizedMinValue(screenToNormalizedL(screenCoordX - mod - mPaddingLeft))
     }
 
-    private fun screenToNormalized(screenCoord: Float, position: Int): Double {
-        val width = width
-        return if (width <= 2 * padding) {
-            0.0
+    private fun moveThumbR(screenCoordX: Float, mod: Float) {
+        rightThumbsTime = Utils.convertSecondsToTime(mEndPosition / 1000)
+        setNormalizedMaxValue(screenToNormalizedR(screenCoordX - mod + mPaddingRight))
+    }
+
+    private fun screenToNormalizedL(screenCoord: Float): Double {
+        val calcPos = (screenCoord.toDouble()) / (getSafeWidth() - thumbWidth)
+        val result = min(1.0, max(0.0, calcPos))
+
+        val total = width - mPaddingRight - thumbWidth - thumbWidth - mPaddingLeft - progressWidth
+        val part = screenCoord.toDouble() - mPaddingLeft
+        val calcTime = part / total
+        normalizedMinValueTime = min(1.0, max(0.0, calcTime))
+        return result
+    }
+
+    private fun screenToNormalizedR(screenCoord: Float): Double {
+        val calcPos = screenCoord.toDouble() / getSafeWidth()
+        val result = min(1.0, max(0.0, calcPos))
+
+        val total = width - mPaddingLeft - mPaddingRight - thumbWidth * 2 - progressWidth
+        val part = screenCoord.toDouble() - thumbWidth - mPaddingLeft
+        val calcTime = part / total
+        normalizedMaxValueTime = min(1.0, max(0.0, calcTime))
+        return result
+    }
+
+    private fun getSafeWidth(): Int {
+        return if (width == 0) {
+            screenWidth - (mPaddingLeft + mPaddingRight)
         } else {
-            isMin = false
-            var current_width = screenCoord.toDouble()
-            val rangeL = normalizedToScreen(normalizedMinValue)
-            val rangeR = normalizedToScreen(normalizedMaxValue)
-            val min =
-                mMinShootTime / (absoluteMaxValuePrim - absoluteMinValuePrim) * (width - thumbWidth * 2)
-            min_width = if (absoluteMaxValuePrim > 5 * 60 * 1000) {
-                val df = DecimalFormat("0.0000")
-                df.format(min).toDouble()
-            } else {
-                round(min + 0.5)
-            }
-            if (position == 0) {
-                if (isInThumbRangeLeft(screenCoord, normalizedMinValue, 0.5)) {
-                    return normalizedMinValue
-                }
-                val rightPosition: Float =
-                    if (getWidth() - rangeR >= 0) getWidth() - rangeR else 0F
-                val left_length = valueLength - (rightPosition + min_width)
-                if (current_width > rangeL) {
-                    current_width = rangeL + (current_width - rangeL)
-                } else if (current_width <= rangeL) {
-                    current_width = rangeL - (rangeL - current_width)
-                }
-                if (current_width > left_length) {
-                    isMin = true
-                    current_width = left_length
-                }
-                if (current_width < thumbWidth * 2 / 3) {
-                    current_width = 0.0
-                }
-                val resultTime = (current_width - padding) / (width - 2 * thumbWidth)
-                normalizedMinValueTime =
-                    min(1.0, max(0.0, resultTime))
-                val result = (current_width - padding) / (width - 2 * padding)
-                min(
-                    1.0,
-                    max(0.0, result)
-                )
-            } else {
-                if (isInThumbRange(screenCoord, normalizedMaxValue, 0.5)) {
-                    return normalizedMaxValue
-                }
-                val right_length = valueLength - (rangeL + min_width)
-                if (current_width > rangeR) {
-                    current_width = rangeR + (current_width - rangeR)
-                } else if (current_width <= rangeR) {
-                    current_width = rangeR - (rangeR - current_width)
-                }
-                var paddingRight = getWidth() - current_width
-                if (paddingRight > right_length) {
-                    isMin = true
-                    current_width = getWidth() - right_length
-                    paddingRight = right_length
-                }
-                if (paddingRight < thumbWidth * 2 / 3) {
-                    current_width = getWidth().toDouble()
-                    paddingRight = 0.0
-                }
-                var resultTime = (paddingRight - padding) / (width - 2 * thumbWidth)
-                resultTime = 1 - resultTime
-                normalizedMaxValueTime =
-                    min(1.0, max(0.0, resultTime))
-                val result = (current_width - padding) / (width - 2 * padding)
-                min(
-                    1.0,
-                    max(0.0, result)
-                )
-            }
+            width
         }
     }
-
-    private val valueLength: Int
-        private get() = width - 2 * thumbWidth
 
     private fun evalPressedThumb(touchX: Float): Thumb? {
         var result: Thumb? = null
-        val minThumbPressed =
-            isInThumbRange(touchX, normalizedMinValue, 2.0)
-        val maxThumbPressed = isInThumbRange(touchX, normalizedMaxValue, 2.0)
+        val minThumbPressed = isInThumbleftPos(touchX)
+        val maxThumbPressed = isInThumbrightPos(touchX)
         if (minThumbPressed && maxThumbPressed) {
-            result = if (touchX / width > 0.5f) Thumb.MIN else Thumb.MAX
+            val l = abs(leftPos - touchX)
+            val r = abs(rightPos + thumbHalfWidth - touchX)
+            result = if (l < r) {
+                Thumb.L
+            } else {
+                Thumb.R
+            }
         } else if (minThumbPressed) {
-            result = Thumb.MIN
+            result =
+                Thumb.L
         } else if (maxThumbPressed) {
-            result = Thumb.MAX
+            result =
+                Thumb.R
         }
         return result
     }
 
-    private fun isInThumbRange(
-        touchX: Float,
-        normalizedThumbValue: Double,
-        scale: Double
+    private fun isInThumbrightPos(
+        touchX: Float
     ): Boolean {
-        return abs(touchX - normalizedToScreen(normalizedThumbValue)) <= thumbHalfWidth * scale
+        val pos = rightPos
+        val min = pos - extraTouchArea
+        val max = pos + extraTouchArea + thumbWidth
+        return touchX > min && touchX < max
     }
 
-    private fun isInThumbRangeLeft(
-        touchX: Float,
-        normalizedThumbValue: Double,
-        scale: Double
+    private fun isInThumbleftPos(
+        touchX: Float
     ): Boolean {
-        return abs(touchX - normalizedToScreen(normalizedThumbValue) - thumbWidth) <= thumbHalfWidth * scale
+        val pos = leftPos
+        val min = pos - extraTouchArea
+        val max = pos + extraTouchArea + thumbWidth
+        return touchX > min && touchX < max
     }
 
     private fun attemptClaimDrag() {
@@ -503,20 +677,9 @@ class RangeSeekBarView @JvmOverloads constructor(
         }
     }
 
-    fun onStartTrackingTouch() {
-        mIsDragging = true
-    }
-
-    fun onStopTrackingTouch() {
-        mIsDragging = false
-    }
-
-    fun setMinShootTime(min_cut_time: Long) {
-        mMinShootTime = min_cut_time
-    }
 
     private fun normalizedToScreen(normalizedCoord: Double): Float {
-        return (paddingLeft + normalizedCoord * (width - paddingLeft - paddingRight)).toFloat()
+        return (mPaddingLeft + normalizedCoord * getSafeWidth()).toFloat()
     }
 
     private fun valueToNormalized(value: Long): Double {
@@ -525,15 +688,24 @@ class RangeSeekBarView @JvmOverloads constructor(
         } else (value - absoluteMinValuePrim) / (absoluteMaxValuePrim - absoluteMinValuePrim)
     }
 
-    fun setStartEndTime(start: Long, end: Long) {
-        mStartPosition = start / 1000
-        mEndPosition = end / 1000
+    private fun setStartEndTime(start: Long, end: Long) {
+        mStartPosition = if(start > end - mMinShootTime) {
+            end - mMinShootTime
+        } else {
+            start
+        }
+        mEndPosition = if(end < start + mMinShootTime) {
+            start + mMinShootTime
+        } else {
+            end
+        }
+        calcDrawPositions()
     }
 
     fun getStartPosition() = mStartPosition
     fun getEndPosition() = mEndPosition
 
-    fun setNormalizedMinValue(value: Double) {
+    private fun setNormalizedMinValue(value: Double) {
         normalizedMinValue = max(
             0.0,
             min(1.0, min(value, normalizedMaxValue))
@@ -541,7 +713,7 @@ class RangeSeekBarView @JvmOverloads constructor(
         invalidate()
     }
 
-    fun setNormalizedMaxValue(value: Double) {
+    private fun setNormalizedMaxValue(value: Double) {
         normalizedMaxValue = max(
             0.0,
             min(1.0, max(value, normalizedMinValue))
@@ -549,71 +721,64 @@ class RangeSeekBarView @JvmOverloads constructor(
         invalidate()
     }
 
-    var selectedMinValue: Long
-        get() = normalizedToValue(normalizedMinValueTime)
-        set(value) {
-            if (0.0 == absoluteMaxValuePrim - absoluteMinValuePrim) {
-                setNormalizedMinValue(0.0)
-            } else {
-                setNormalizedMinValue(valueToNormalized(value))
-            }
-        }
-
-    var selectedMaxValue: Long
-        get() = normalizedToValue(normalizedMaxValueTime)
-        set(value) {
-            if (0.0 == absoluteMaxValuePrim - absoluteMinValuePrim) {
-                setNormalizedMaxValue(1.0)
-            } else {
-                setNormalizedMaxValue(valueToNormalized(value))
-            }
-        }
 
     private fun normalizedToValue(normalized: Double): Long {
-        return (absoluteMinValuePrim + normalized * (absoluteMaxValuePrim - absoluteMinValuePrim)).toLong()
+        return (
+                absoluteMinValuePrim + normalized
+                        * (absoluteMaxValuePrim - absoluteMinValuePrim)
+                ).toLong()
     }
 
-    fun setTouchDown(touchDown: Boolean) {
-        isTouchDown = touchDown
-    }
-
-    override fun onSaveInstanceState(): Parcelable {
-        val bundle = Bundle()
-        bundle.putParcelable("SUPER", super.onSaveInstanceState())
-        bundle.putDouble("MIN", normalizedMinValue)
-        bundle.putDouble("MAX", normalizedMaxValue)
-        bundle.putDouble("MIN_TIME", normalizedMinValueTime)
-        bundle.putDouble("MAX_TIME", normalizedMaxValueTime)
-        return bundle
-    }
-
-    override fun onRestoreInstanceState(parcel: Parcelable) {
-        val bundle = parcel as Bundle
-        super.onRestoreInstanceState(bundle.getParcelable("SUPER"))
-        normalizedMinValue = bundle.getDouble("MIN")
-        normalizedMaxValue = bundle.getDouble("MAX")
-        normalizedMinValueTime = bundle.getDouble("MIN_TIME")
-        normalizedMaxValueTime = bundle.getDouble("MAX_TIME")
-    }
-
-    interface OnRangeSeekBarChangeListener {
-        fun onRangeSeekBarValuesChanged(
-            bar: RangeSeekBarView?,
-            minValue: Long,
-            maxValue: Long,
-            action: Int,
-            isMin: Boolean,
-            pressedThumb: Thumb?
-        )
-    }
+//    override fun onSaveInstanceState(): Parcelable {
+//        val bundle = Bundle()
+//        bundle.putParcelable("SUPER", super.onSaveInstanceState())
+//        bundle.putDouble("MIN", normalizedMinValue)
+//        bundle.putDouble("MAX", normalizedMaxValue)
+//        bundle.putDouble("MIN_TIME", normalizedMinValueTime)
+//        bundle.putDouble("MAX_TIME", normalizedMaxValueTime)
+//        return bundle
+//    }
+//
+//    override fun onRestoreInstanceState(parcel: Parcelable) {
+//        val bundle = parcel as Bundle
+//        super.onRestoreInstanceState(bundle.getParcelable("SUPER"))
+//        normalizedMinValue = bundle.getDouble("MIN")
+//        normalizedMaxValue = bundle.getDouble("MAX")
+//        normalizedMinValueTime = bundle.getDouble("MIN_TIME")
+//        normalizedMaxValueTime = bundle.getDouble("MAX_TIME")
+//    }
 
     fun setOnRangeSeekBarChangeListener(listener: OnRangeSeekBarChangeListener?) {
         mRangeSeekBarChangeListener = listener
+    }
+
+    private var mDuration = 0L
+    fun setDuration(duration: Long) {
+        mDuration = duration
+    }
+
+    private var extraMsFromTimeline = 0L
+    fun setExtraMsFromTimeline(extraMs: Long) {
+        extraMsFromTimeline = extraMs
+        setStartEndTime(
+            selectedMinValue + extraMsFromTimeline,
+            selectedMaxValue + extraMsFromTimeline
+        )
+        leftThumbsTime = Utils.convertSecondsToTime(mStartPosition / 1000)
+        rightThumbsTime = Utils.convertSecondsToTime(mEndPosition / 1000)
+        calcDrawPositions()
+        invalidate()
+    }
+
+    private var mIsSeeking = false
+    fun setIsSeeking(seeking: Boolean) {
+        mIsSeeking = seeking
     }
 
     companion object {
         const val INVALID_POINTER_ID = 255
         const val ACTION_POINTER_INDEX_MASK = 0x0000ff00
         const val ACTION_POINTER_INDEX_SHIFT = 8
+
     }
 }

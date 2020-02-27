@@ -32,13 +32,13 @@ object MetaDataUtils {
             MediaMetadataRetriever.OPTION_CLOSEST_SYNC
         )
 
-        val fullPath = context.cacheDir.path + "/bloom_native_thumb"
+        val fullPath = context.cacheDir.path + "/bloom_native_thumb_l"
         try {
             val dir = File(fullPath)
             if (!dir.exists()) {
                 dir.mkdirs()
             }
-            val fileName = "bloom_native_thumb-" + UUID.randomUUID().toString() + ".jpeg"
+            val fileName = "bloom_native_thumb_l-" + UUID.randomUUID().toString() + ".jpeg"
             val file = File(fullPath, fileName)
             file.createNewFile()
             val fOut: OutputStream = FileOutputStream(file)

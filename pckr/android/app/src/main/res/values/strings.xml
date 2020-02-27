@@ -1,4 +1,4 @@
 <resources>
-    <string name="app_name">pckr</string>
+    <string name="app_name">Bloomhigh</string>
     <string name="file_provider_authorities">com.pckr.provider</string>
 </resources>

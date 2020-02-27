@@ -7,20 +7,18 @@ enum class Error(val code: Int) {
     CANCELED(0),
     MISSING_OPTIONS(-1),
     PERMISSION_DENIED(-2),
-    NULL_ACTIVITY(-3);
+    NULL_ACTIVITY(-3),
+    UNKNOWN(-4);
 
-    fun toBundle(): Bundle {
-        return Bundle().also {
-            it.putInt("code", code)
-            it.putString("message", name)
-        }
+    fun toThrowable() : Throwable {
+        return Throwable("$code: $name")
     }
 }
 
-data class CustomError(
+data class CustomError (
     val code: Int = -1000,
-    val message: String = "Unknown"
-) {
+    override val message: String = "Unknown"
+) : Throwable("$code: $message") {
     fun toBundle(): Bundle {
         return Bundle().also {
             it.putInt("code", code)

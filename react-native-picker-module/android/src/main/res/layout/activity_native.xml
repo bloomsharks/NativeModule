@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="tgio.github.com.mediapickerlib.NativeActivity">
+
+    <ImageView
+        android:id="@+id/ivResult"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#1A000000"
+        app:layout_constraintDimensionRatio="h,1:1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/btnPickPhoto"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Pick Profile"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/ivResult" />
+
+    <Button
+        android:id="@+id/btnPickCover"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Pick Cover"
+        app:layout_constraintStart_toEndOf="@+id/btnPickPhoto"
+        app:layout_constraintTop_toTopOf="@+id/btnPickPhoto" />
+
+    <Button
+        android:id="@+id/btnPickVideo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Pick Video"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnPickCustomRatioPhoto" />
+
+    <Button
+        android:id="@+id/btnPickFile"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Pick File"
+        app:layout_constraintStart_toEndOf="@+id/btnPickVideo"
+        app:layout_constraintTop_toTopOf="@+id/btnPickVideo" />
+
+    <Button
+        android:id="@+id/btnPickPost"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Pick Post"
+        app:layout_constraintStart_toEndOf="@+id/btnPickCover"
+        app:layout_constraintTop_toTopOf="@+id/btnPickCover" />
+
+    <Button
+        android:id="@+id/btnPickCustomRatioPhoto"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Pick Custom Ratio Photo"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnPickPhoto" />
+
+    <TextView
+        android:id="@+id/tvResultUri"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="20dp"
+        android:background="#99FFFFFF"
+        app:layout_constraintBottom_toBottomOf="@+id/ivResult"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/ivResult" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

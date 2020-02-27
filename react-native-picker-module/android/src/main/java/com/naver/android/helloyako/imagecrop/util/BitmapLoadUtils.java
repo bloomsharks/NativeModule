@@ -37,7 +37,6 @@ public class BitmapLoadUtils {
     }
 
     public static Bitmap decode(String path, int reqWidth, int reqHeight, boolean useImageView) {
-        Log.d(TAG, "XZR decode() called with: path = [" + path + "], reqWidth = [" + reqWidth + "], reqHeight = [" + reqHeight + "], useImageView = [" + useImageView + "]");
         if (path == null) {
             return null;
         }
@@ -123,7 +122,6 @@ public class BitmapLoadUtils {
                 }
             }
         }
-        Log.d(TAG, "XZR calculateInSampleSize() called with: options = [" + options + "], reqWidth = [" + reqWidth + "], reqHeight = [" + reqHeight + "], useImageView = [" + useImageView + "], inSampleSize = [" + inSampleSize + "]");
         return inSampleSize;
     }
 

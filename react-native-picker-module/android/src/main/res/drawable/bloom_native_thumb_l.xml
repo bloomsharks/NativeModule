@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:width="@dimen/bloom_native_thumb_width"
+        android:height="@dimen/bloom_native_frames_video_height">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/bloom_native_main" />
+            <corners
+                android:bottomLeftRadius="@dimen/bloom_native_progress_thumb_corner_radius"
+                android:topLeftRadius="@dimen/bloom_native_progress_thumb_corner_radius" />
+        </shape>
+    </item>
+    <item
+        android:width="2dp"
+        android:height="20dp"
+        android:gravity="center">
+        <shape android:shape="rectangle">
+            <solid android:color="#FFF" />
+            <corners android:radius="1dp" />
+        </shape>
+    </item>
+</layer-list>

@@ -4,7 +4,7 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
-import com.facebook.react.bridge.Promise
+import android.os.Bundle
 import com.hbisoft.pickit.PickiT
 import com.hbisoft.pickit.PickiTCallbacks
 import com.karumi.dexter.Dexter
@@ -24,7 +24,8 @@ import java.util.*
 class NativePicker(
     private val activity: Activity,
     private val pickMediaRequest: PickMediaRequest,
-    private val promise: Promise
+    private val resolve: (Bundle) -> Unit,
+    private val reject: (Throwable) -> Unit
 ) {
 
     init {
@@ -100,7 +101,8 @@ class NativePicker(
                                 it.putExtra("imageWidth", bitmap.width.toString())
                                 it.putExtra("imageHeight", bitmap.height.toString())
                             },
-                            promise = promise
+                            resolve = resolve,
+                            reject = reject
                         )
                     }.execute()
                 }
@@ -122,7 +124,7 @@ class NativePicker(
                 if(wasSuccessful) {
                     launchTrim(path!!, originalFileName)
                 } else {
-                    promise.reject(Error.CANCELED)
+                    reject.invoke(Error.CANCELED.toThrowable())
                 }
             }
         }).getPath(uri)
@@ -133,11 +135,12 @@ class NativePicker(
             context = activity,
             mediaRequest = pickMediaRequest,
             intent = data,
-            promise = promise
+            resolve = resolve,
+            reject = reject
         )
         if (resultCode != Activity.RESULT_OK || data == null) {
             if (data != null) {
-                promise.reject(Error.CANCELED)
+                reject.invoke(Error.CANCELED.toThrowable())
             }
             return
         }
@@ -149,14 +152,14 @@ class NativePicker(
                     if (resultCode == Activity.RESULT_OK) {
                         launchCrop(data.data!!)
                     } else {
-                        promise.reject(Error.CANCELED)
+                        reject.invoke(Error.CANCELED.toThrowable())
                     }
                 }
             }
             REQUEST_PICK_VIDEO -> {
                 if((pickMediaRequest as Video).trim) {
                     if(data.data == null) {
-                        promise.reject(Error.CANCELED)
+                        reject.invoke(Error.CANCELED.toThrowable())
                     } else {
                         copyVideo(data.data!!)
                     }
@@ -164,7 +167,7 @@ class NativePicker(
                     if (resultCode == Activity.RESULT_OK) {
                         default()
                     } else {
-                        promise.reject(Error.CANCELED)
+                        reject.invoke(Error.CANCELED.toThrowable())
                     }
                 }
             }
@@ -187,7 +190,7 @@ class NativePicker(
                 }
 
                 override fun onPermissionDenied(response: PermissionDeniedResponse) {
-                    promise.reject(Error.PERMISSION_DENIED)
+                    reject.invoke(Error.PERMISSION_DENIED.toThrowable())
                 }
 
                 override fun onPermissionRationaleShouldBeShown(
