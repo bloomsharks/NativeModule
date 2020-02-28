@@ -75,9 +75,9 @@ data class PickMediaResponse(
             if(intent.data == null) {
                 reject.invoke(Error.UNKNOWN.toThrowable())
             } else {
-                val uri = intent.data!!
+                var uri = intent.data!!.toString()
                 //Viable if uri starts with Content or File
-                val (_fileName, _fileSize) = MetaDataUtils.getFileNameAndSize(context, uri)
+                val (_fileName, _fileSize) = MetaDataUtils.getFileNameAndSize(context, Uri.parse(uri))
                 //Alternate option for data
                 val fs = intent.getLongExtra(KEY_FILE_SIZE, _fileSize)
                 val fileName = intent.getStringExtra(KEY_ORIGINAL_FILE_NAME) ?: _fileName
@@ -90,7 +90,7 @@ data class PickMediaResponse(
                 try {
                     val videoMetaData = MetaDataUtils.getVideoMetaData(
                         context,
-                        uri,
+                        Uri.parse(uri),
                         DEFAULT_COMPRESSION_QUALITY_THUMB
                     )
                     width = videoMetaData.width
@@ -101,12 +101,16 @@ data class PickMediaResponse(
                     reject.invoke(e)
                 }
 
+                if(uri.startsWith("/data")) {
+                    uri = "file://$uri"
+                }
+
                 resolve.invoke(
                     PickMediaResponse(
-                        uri = uri.toString(),
+                        uri = uri,
                         fileName = fileName,
                         fileSize = fs.toString(),
-                        type = CommonUtils.getMimeType(context, uri),
+                        type = CommonUtils.getMimeType(context, Uri.parse(uri)),
                         thumbnail = thumbnail,
                         height = height,
                         width = width,
