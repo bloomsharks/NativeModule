@@ -179,7 +179,7 @@ class VideoTrimmerActivity : AppCompatActivity(R.layout.bloom_native_activity_vi
             it.data = Uri.parse(resultPath)
             it.putExtra(KEY_ORIGINAL_FILE_NAME, intent.getStringExtra(KEY_ORIGINAL_FILE_NAME))
             it.putExtra("fileSize", fileSize)
-            it.putExtra("resultPath", resultPath)
+            it.putExtra("resultPath", "file://$resultPath")
         })
         finish()
     }
