@@ -233,8 +233,10 @@ class VideoTrimmerActivity : AppCompatActivity(R.layout.bloom_native_activity_vi
         if (videoHeight > videoWidth) {
             lp.height = screenHeight
             overlay.layoutParams.width = mVideoView.width
-        } else {
+        } else if(videoHeight < videoWidth) {
             lp.height = (lp.width * r).toInt()
+        } else {
+            lp.height = mLinearVideo.width
         }
         mLinearVideo.layoutParams = lp
     }
