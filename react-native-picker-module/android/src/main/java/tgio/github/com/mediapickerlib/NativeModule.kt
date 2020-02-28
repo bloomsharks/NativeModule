@@ -41,8 +41,7 @@ class NativeModule(private val reactContext: ReactApplicationContext) :
         nativePicker = NativePicker(
             activity = currentActivity!!,
             pickMediaRequest = pickMediaRequest,
-            resolve = promise::resolve,
-            reject = promise::reject
+            promise = promise
         )
     }
 }
