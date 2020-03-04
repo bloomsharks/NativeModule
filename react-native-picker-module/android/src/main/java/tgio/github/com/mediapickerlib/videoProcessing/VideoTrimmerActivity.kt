@@ -49,13 +49,7 @@ class VideoTrimmerActivity : AppCompatActivity(R.layout.bloom_native_activity_vi
     private lateinit var videoTrimmer: VideoTrimmer
 
     private val trimListener = object : VideoTrimListener {
-        override fun onTrimStart() {
-            mDialog = Utils.showProgressDialog(
-                this@VideoTrimmerActivity,
-                resources.getString(R.string.bloom_native_trimming),
-                mDialog
-            )
-        }
+        override fun onTrimStart() { }
 
         override fun onTrimError(error: Int, message: String) {
             dismissActiveDialog()
@@ -250,6 +244,11 @@ class VideoTrimmerActivity : AppCompatActivity(R.layout.bloom_native_activity_vi
     }
 
     private fun onSaveClicked() {
+        mDialog = Utils.showProgressDialog(
+                this@VideoTrimmerActivity,
+                resources.getString(R.string.bloom_native_trimming),
+                mDialog
+        )
         mVideoView.pause()
         videoTrimmer.trimVideo(
                 inputPath = mSourceUri!!.path!!,
