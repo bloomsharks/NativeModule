@@ -225,6 +225,7 @@ class VideoTrimmer(
                 maxDisplayedThumbsCount = paramMaxDisplayedThumbs
             )
             isPrepared = true
+            seekTo(0)
         }
     }
 
