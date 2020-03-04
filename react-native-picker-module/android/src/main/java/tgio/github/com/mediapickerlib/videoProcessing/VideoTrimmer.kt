@@ -118,6 +118,7 @@ class VideoTrimmer(
                     playAfterSeek()
                 } else {
                     seekTo(mRightProgressPos)
+                    rangeSeekBarView.setProgressPos(mRightProgressPos.toFloat())
                     playAfterSeek()
                 }
             }
