@@ -102,6 +102,7 @@ class VideoTrimmer(
         minValue: Long,
         maxValue: Long,
         action: Int,
+        positionHasBeenChanged: Boolean,
         pressedThumb: RangeSeekBarView.Thumb?
     ) {
         mLeftProgressPos = minValue + scrollPos
@@ -109,7 +110,7 @@ class VideoTrimmer(
         when (action) {
             MotionEvent.ACTION_DOWN -> {
                 isSeeking = false
-                setIsPlaying.invoke(true)
+                setIsPlaying.invoke(videoView.isPlaying)
             }
             MotionEvent.ACTION_MOVE -> {
                 isSeeking = true
@@ -118,16 +119,19 @@ class VideoTrimmer(
                     playAfterSeek()
                 } else {
                     seekTo(mRightProgressPos)
+                    println("XDIFFF positionHasBeenChanged:$positionHasBeenChanged")
                     rangeSeekBarView.setProgressPos(mRightProgressPos.toFloat())
                     playAfterSeek()
                 }
             }
             MotionEvent.ACTION_UP -> {
-                setIsPlaying.invoke(false)
-                isSeeking = false
-                seekTo(mLeftProgressPos)
-                playAfterSeek()
-                rangeSeekBarView.setProgressPos(0F)
+                if(positionHasBeenChanged) {
+                    setIsPlaying.invoke(videoView.isPlaying)
+                    isSeeking = false
+                    seekTo(mLeftProgressPos)
+                    playAfterSeek()
+                    rangeSeekBarView.setProgressPos(0F)
+                }
             }
             else -> {
             }
@@ -138,6 +142,7 @@ class VideoTrimmer(
     }
 
     private fun seekTo(msec: Long) {
+        println("XDIFFF seekTo($msec)")
         videoView.seekTo(msec.toInt())
     }
 
@@ -166,9 +171,9 @@ class VideoTrimmer(
         rangeSeekBarView.selectedMinValue = mLeftProgressPos
         rangeSeekBarView.selectedMaxValue = mRightProgressPos
         rangeSeekBarView.isNotifyWhileDragging = true
-        rangeSeekBarView.reset()
 
         valueAnimator?.cancel()
+        rangeSeekBarView.reset()
 
         mAverageMsPx = mDuration * 1.0f / rangeWidth * 1.0f
         averagePxMs = mMaxWidth * 1.0f / (mRightProgressPos - mLeftProgressPos)
@@ -245,12 +250,16 @@ class VideoTrimmer(
     }
 
     private fun playProgressAnimation() {
-        val from = if (rangeSeekBarView.isRightThumbPressed())
+        val from = if (rangeSeekBarView.isRightThumbPressed()) {
+            println("XDIFFF anim right")
             rangeSeekBarView.getRightPos()
-        else
+        } else {
+            println("XDIFFF anim progress")
             rangeSeekBarView.getProgressPos()
-
+        }
         val to = rangeSeekBarView.getRightPos()
+
+
 
         val fromMs = videoView.currentPosition
         val toMs = mRightProgressPos
@@ -259,6 +268,8 @@ class VideoTrimmer(
 
         if (duration < 0)
             return
+
+        println("XDIFFF from:$from; to:$to; fromMs:$fromMs; toMs:$toMs;")
 
         valueAnimator = ValueAnimator.ofFloat(from, to)
         valueAnimator?.duration = duration

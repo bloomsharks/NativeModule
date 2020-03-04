@@ -109,6 +109,7 @@ class RangeSeekBarView @JvmOverloads constructor(
     }
 
     fun reset() {
+        pressedThumb = null
         normalizedMinValue = 0.0
         normalizedMaxValue = 1.0
         normalizedMinValueTime = 0.0
@@ -141,7 +142,8 @@ class RangeSeekBarView @JvmOverloads constructor(
         mMinShootTime = minDuration
         mMaxShootTime = maxDuration
 
-        min = (mMinShootTime / (absoluteMaxValuePrim - absoluteMinValuePrim)) * (width - mPaddingLeft - mPaddingRight - thumbWidth * 2)
+        min =
+            (mMinShootTime / (absoluteMaxValuePrim - absoluteMinValuePrim)) * (width - mPaddingLeft - mPaddingRight - thumbWidth * 2)
         minWidth = if (absoluteMaxValuePrim > 5 * 60 * 1000) {
             val df = DecimalFormat("0.0000")
             df.format(min).toDouble()
@@ -272,7 +274,7 @@ class RangeSeekBarView @JvmOverloads constructor(
     }
 
     private fun drawMarkers(canvas: Canvas) {
-        if(DEBUG_TOUCH_AREA_ENABLED.not()) {
+        if (DEBUG_TOUCH_AREA_ENABLED.not()) {
             return
         }
         val startX = mPaddingLeft.toFloat() + thumbWidth + (progressWidth / 2)
@@ -479,9 +481,15 @@ class RangeSeekBarView @JvmOverloads constructor(
                 mActivePointerId = event.getPointerId(event.pointerCount - 1)
                 pointerIndex = event.findPointerIndex(mActivePointerId)
                 mDownMotionX = event.getX(pointerIndex)
+
                 pressedThumb = evalPressedThumb(mDownMotionX)
-                if (pressedThumb == null) return super.onTouchEvent(event)
+                if (pressedThumb == null) {
+                    println("XDIFFF no thumb pressed.")
+                    return super.onTouchEvent(event)
+                }
+
                 isPressed = true
+                mIsDragging = true
 
                 if (pressedThumb == Thumb.L) {
                     xDiff = mDownMotionX - leftPos
@@ -489,19 +497,16 @@ class RangeSeekBarView @JvmOverloads constructor(
                     xDiff = mDownMotionX - rightPos
                 }
 
-                mIsDragging = true
-
                 attemptClaimDrag()
 
-                if (mRangeSeekBarChangeListener != null) {
-                    mRangeSeekBarChangeListener!!.onRangeSeekBarValuesChanged(
-                        this,
-                        selectedMinValue,
-                        selectedMaxValue,
-                        MotionEvent.ACTION_DOWN,
-                        pressedThumb
-                    )
-                }
+                mRangeSeekBarChangeListener?.onRangeSeekBarValuesChanged(
+                    bar = this,
+                    minValue = selectedMinValue,
+                    maxValue = selectedMaxValue,
+                    action = MotionEvent.ACTION_DOWN,
+                    positionHasBeenChanged = false,
+                    pressedThumb = pressedThumb
+                )
             }
             MotionEvent.ACTION_MOVE -> if (pressedThumb != null) {
                 if (Thumb.L == pressedThumb) {
@@ -521,26 +526,31 @@ class RangeSeekBarView @JvmOverloads constructor(
                         minValue = selectedMinValue,
                         maxValue = selectedMaxValue,
                         action = MotionEvent.ACTION_MOVE,
+                        positionHasBeenChanged = true,
                         pressedThumb = pressedThumb
                     )
                 }
             }
             MotionEvent.ACTION_UP -> {
-                xDiff = 0F
                 pressedThumb = null
+                xDiff = 0F
                 mIsDragging = false
                 isPressed = false
 
-                setStartEndTime(
-                    selectedMinValue + extraMsFromTimeline,
-                    selectedMaxValue + extraMsFromTimeline
-                )
-                invalidate()
+                val positionHasBeenChanged = mDownMotionX != eventX
+                if (positionHasBeenChanged) {
+                    setStartEndTime(
+                        selectedMinValue + extraMsFromTimeline,
+                        selectedMaxValue + extraMsFromTimeline
+                    )
+                    invalidate()
+                }
                 mRangeSeekBarChangeListener?.onRangeSeekBarValuesChanged(
                     bar = this,
                     minValue = selectedMinValue,
                     maxValue = selectedMaxValue,
                     action = MotionEvent.ACTION_UP,
+                    positionHasBeenChanged = positionHasBeenChanged,
                     pressedThumb = pressedThumb
                 )
             }
@@ -644,11 +654,9 @@ class RangeSeekBarView @JvmOverloads constructor(
                 Thumb.R
             }
         } else if (minThumbPressed) {
-            result =
-                Thumb.L
+            result = Thumb.L
         } else if (maxThumbPressed) {
-            result =
-                Thumb.R
+            result = Thumb.R
         }
         return result
     }
@@ -689,12 +697,12 @@ class RangeSeekBarView @JvmOverloads constructor(
     }
 
     private fun setStartEndTime(start: Long, end: Long) {
-        mStartPosition = if(start > end - mMinShootTime) {
+        mStartPosition = if (start > end - mMinShootTime) {
             end - mMinShootTime
         } else {
             start
         }
-        mEndPosition = if(end < start + mMinShootTime) {
+        mEndPosition = if (end < start + mMinShootTime) {
             start + mMinShootTime
         } else {
             end

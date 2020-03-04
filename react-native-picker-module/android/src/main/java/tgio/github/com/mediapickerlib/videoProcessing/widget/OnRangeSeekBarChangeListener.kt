@@ -6,6 +6,7 @@ interface OnRangeSeekBarChangeListener {
         minValue: Long,
         maxValue: Long,
         action: Int,
+        positionHasBeenChanged: Boolean,
         pressedThumb: RangeSeekBarView.Thumb?
     )
 }
