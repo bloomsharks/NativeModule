@@ -5,8 +5,6 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import com.facebook.react.bridge.Arguments
-import com.facebook.react.bridge.Promise
 import com.hbisoft.pickit.PickiT
 import com.hbisoft.pickit.PickiTCallbacks
 import com.karumi.dexter.Dexter
@@ -26,14 +24,10 @@ import java.util.*
 class NativePicker(
     private val activity: Activity,
     private val pickMediaRequest: PickMediaRequest,
-    private val promise: Promise
+    private val resolve: (Bundle) -> Unit,
+    private val reject: (Throwable) -> Unit
 ) {
-    private val resolve: (Bundle) -> Unit = {
-        promise.resolve(Arguments.fromBundle(it))
-    }
-    private val reject: (Throwable) -> Unit = {
-        promise.reject(it)
-    }
+
     init {
         pickMedia()
     }
