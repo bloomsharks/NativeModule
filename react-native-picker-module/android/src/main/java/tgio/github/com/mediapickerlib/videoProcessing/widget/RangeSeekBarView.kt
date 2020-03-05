@@ -11,10 +11,7 @@ import android.view.View
 import android.view.ViewConfiguration
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
-import tgio.github.com.mediapickerlib.DEBUG_TOUCH_AREA_ENABLED
-import tgio.github.com.mediapickerlib.DEFAULT_MAX_DURATION
-import tgio.github.com.mediapickerlib.DEFAULT_MIN_DURATION
-import tgio.github.com.mediapickerlib.R
+import tgio.github.com.mediapickerlib.*
 import tgio.github.com.mediapickerlib.videoProcessing.Utils
 import java.text.DecimalFormat
 import kotlin.math.abs
@@ -144,7 +141,7 @@ class RangeSeekBarView @JvmOverloads constructor(
         mMaxShootTime = maxDuration
 
         min =
-            (mMinShootTime / (absoluteMaxValuePrim - absoluteMinValuePrim)) * (width - mPaddingLeft - mPaddingRight - thumbWidth * 2)
+            (mMinShootTime / (absoluteMaxValuePrim - absoluteMinValuePrim)) * (width - mPaddingLeft - mPaddingRight - thumbWidth)
         minWidth = if (absoluteMaxValuePrim > 5 * 60 * 1000) {
             val df = DecimalFormat("0.0000")
             df.format(min).toDouble()
@@ -261,7 +258,7 @@ class RangeSeekBarView @JvmOverloads constructor(
 
 
             drawThumb(leftPos, canvas, true)
-            drawProgress(canvas)
+//            drawProgress(canvas)
             drawThumb(rightPos, canvas, false)
 
             drawMarkers(canvas)
@@ -269,19 +266,21 @@ class RangeSeekBarView @JvmOverloads constructor(
     }
 
     private val markerPaint = Paint().apply {
-        color = Color.RED
+        color = Color.YELLOW
         strokeWidth = progressWidth.toFloat()
-        alpha = 150
+        alpha = 80
     }
 
     private fun drawMarkers(canvas: Canvas) {
-        if (DEBUG_TOUCH_AREA_ENABLED.not()) {
+        if (DEBUG_TOUCH_MARKERS.not()) {
             return
         }
         val startX = mPaddingLeft.toFloat() + thumbWidth + (progressWidth / 2)
         val endX = width - mPaddingRight.toFloat() - thumbWidth - (progressWidth / 2)
         val lengthX = endX - startX
         val tenth = lengthX / (mMaxShootTime / 1000)
+
+//        println("drawMarkers lengthX:$lengthX, tenth:$tenth, startX:$startX, endX:$endX")
 
         for(i in 0..mMaxShootTime) {
             canvas.drawLine(
@@ -376,12 +375,12 @@ class RangeSeekBarView @JvmOverloads constructor(
 
     private fun setLeftPos(value: Float) {
         val mostLeft = mPaddingLeft.toFloat()
-        val mostRight = rightPos - progressWidth - thumbWidth - minWidth
+        val mostRight = rightPos - thumbWidth - minWidth + progressWidth
         leftPos = max(mostLeft, min(value, mostRight.toFloat()))
     }
 
     private fun setRightPos(value: Float) {
-        val mostLeft = leftPos + progressWidth + thumbWidth + minWidth
+        val mostLeft = leftPos + thumbWidth + minWidth - progressWidth
         val mostRight = width - thumbWidth - mPaddingRight
         rightPos = min(mostRight.toFloat(), max(mostLeft.toFloat(), value))
     }
@@ -598,32 +597,30 @@ class RangeSeekBarView @JvmOverloads constructor(
     }
 
     private fun updateRightTime(screenCoordX: Float, mod: Float) {
-        val minValue = 1 - (1 / minWidth) * 100
+        val minValue = abs(1 - (1 / 92.4) * 100)
+        val minValueTime = mMaxShootTime * minValue
 
         val modValue = screenCoordX - mod
         val total = width - mPaddingLeft - mPaddingRight
 
         val calcTime = modValue / total
 
-        val minimum = 0.0//normalizedMinValueTime + minValue
+        val minimum = normalizedMinValueTime + minValue
         val maximum = 1.0
 
         normalizedMaxValueTime = max(minimum, min(maximum, calcTime.toDouble()))
         val normalizedValue = max(normalizedMinValueTime.toLong() + mMinShootTime, normalizedToValue(normalizedMaxValueTime))
 //        rightThumbsTime = Utils.convertSecondsToTime(normalizedValue / 1000)
-        rightThumbsTime = normalizedValue.toString()
+        rightThumbsTime = (normalizedValue).toString()
+//        MRRR lengthX:924.0, tenth:92.4, startX:78.0, endX:1002.0
         Log.d("MRRR",
             """right
-                minValue: $minValue
-                modValue: $modValue
-                total: $total
-                screenWidth: $screenWidth
-                calcTime: $calcTime
-                minimum: $minimum
-                maximum: $maximum
-                mMinShootTime: $mMinShootTime
-                normalizedMinValueTime: $normalizedMinValueTime
-                normalizedMaxValueTime: $normalizedMaxValueTime
+                minValue: $minValue; minValueTime: $minValueTime; min: $min;
+                modValue: $modValue; total: $total; screenWidth: $screenWidth;
+                calcTime: $calcTime; minimum: $minimum; maximum: $maximum;
+                thumbWidth: $thumbWidth; mPaddingLeft: $mPaddingLeft;
+                progressWidth: $progressWidth; mMinShootTime: $mMinShootTime;
+                normalizedMinValueTime: $normalizedMinValueTime; normalizedMaxValueTime: $normalizedMaxValueTime;
                 normalizedValue: $normalizedValue
                 rightThumbsTime: $rightThumbsTime
             """.trimIndent())
