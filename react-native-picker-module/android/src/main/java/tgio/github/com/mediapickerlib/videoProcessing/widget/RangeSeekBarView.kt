@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.*
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
+import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
@@ -270,7 +271,7 @@ class RangeSeekBarView @JvmOverloads constructor(
     private val markerPaint = Paint().apply {
         color = Color.RED
         strokeWidth = progressWidth.toFloat()
-        alpha = 100
+        alpha = 150
     }
 
     private fun drawMarkers(canvas: Canvas) {
@@ -280,34 +281,17 @@ class RangeSeekBarView @JvmOverloads constructor(
         val startX = mPaddingLeft.toFloat() + thumbWidth + (progressWidth / 2)
         val endX = width - mPaddingRight.toFloat() - thumbWidth - (progressWidth / 2)
         val lengthX = endX - startX
-        canvas.drawLine(
-            startX,
-            paddingTop.toFloat(),
-            startX,
-            height.toFloat(),
-            markerPaint
-        )
-        canvas.drawLine(
-            (lengthX / 3F) + startX,
-            paddingTop.toFloat(),
-            (lengthX / 3F) + startX,
-            height.toFloat(),
-            markerPaint
-        )
-        canvas.drawLine(
-            ((lengthX / 3F) * 2) + startX,
-            paddingTop.toFloat(),
-            ((lengthX / 3F) * 2) + startX,
-            height.toFloat(),
-            markerPaint
-        )
-        canvas.drawLine(
-            endX,
-            paddingTop.toFloat(),
-            endX,
-            height.toFloat(),
-            markerPaint
-        )
+        val tenth = lengthX / (mMaxShootTime / 1000)
+
+        for(i in 0..mMaxShootTime) {
+            canvas.drawLine(
+                startX + tenth * i,
+                paddingTop.toFloat(),
+                startX + tenth * i,
+                height.toFloat(),
+                markerPaint
+            )
+        }
     }
 
     private fun drawTouchAreas(canvas: Canvas) {
@@ -602,13 +586,47 @@ class RangeSeekBarView @JvmOverloads constructor(
     }
 
     private fun moveThumbL(screenCoordX: Float, mod: Float) {
-        leftThumbsTime = Utils.convertSecondsToTime(mStartPosition / 1000)
+//        leftThumbsTime = Utils.convertSecondsToTime(mStartPosition / 1000)
+        leftThumbsTime = mStartPosition.toString()
         setNormalizedMinValue(screenToNormalizedL(screenCoordX - mod - mPaddingLeft))
     }
 
     private fun moveThumbR(screenCoordX: Float, mod: Float) {
-        rightThumbsTime = Utils.convertSecondsToTime(mEndPosition / 1000)
+//        rightThumbsTime = Utils.convertSecondsToTime(mEndPosition / 1000)
         setNormalizedMaxValue(screenToNormalizedR(screenCoordX - mod + mPaddingRight))
+        updateRightTime(screenCoordX, mod)
+    }
+
+    private fun updateRightTime(screenCoordX: Float, mod: Float) {
+        val minValue = 1 - (1 / minWidth) * 100
+
+        val modValue = screenCoordX - mod
+        val total = width - mPaddingLeft - mPaddingRight
+
+        val calcTime = modValue / total
+
+        val minimum = 0.0//normalizedMinValueTime + minValue
+        val maximum = 1.0
+
+        normalizedMaxValueTime = max(minimum, min(maximum, calcTime.toDouble()))
+        val normalizedValue = max(normalizedMinValueTime.toLong() + mMinShootTime, normalizedToValue(normalizedMaxValueTime))
+//        rightThumbsTime = Utils.convertSecondsToTime(normalizedValue / 1000)
+        rightThumbsTime = normalizedValue.toString()
+        Log.d("MRRR",
+            """right
+                minValue: $minValue
+                modValue: $modValue
+                total: $total
+                screenWidth: $screenWidth
+                calcTime: $calcTime
+                minimum: $minimum
+                maximum: $maximum
+                mMinShootTime: $mMinShootTime
+                normalizedMinValueTime: $normalizedMinValueTime
+                normalizedMaxValueTime: $normalizedMaxValueTime
+                normalizedValue: $normalizedValue
+                rightThumbsTime: $rightThumbsTime
+            """.trimIndent())
     }
 
     private fun screenToNormalizedL(screenCoord: Float): Double {
@@ -737,32 +755,14 @@ class RangeSeekBarView @JvmOverloads constructor(
                 ).toLong()
     }
 
-//    override fun onSaveInstanceState(): Parcelable {
-//        val bundle = Bundle()
-//        bundle.putParcelable("SUPER", super.onSaveInstanceState())
-//        bundle.putDouble("MIN", normalizedMinValue)
-//        bundle.putDouble("MAX", normalizedMaxValue)
-//        bundle.putDouble("MIN_TIME", normalizedMinValueTime)
-//        bundle.putDouble("MAX_TIME", normalizedMaxValueTime)
-//        return bundle
-//    }
-//
-//    override fun onRestoreInstanceState(parcel: Parcelable) {
-//        val bundle = parcel as Bundle
-//        super.onRestoreInstanceState(bundle.getParcelable("SUPER"))
-//        normalizedMinValue = bundle.getDouble("MIN")
-//        normalizedMaxValue = bundle.getDouble("MAX")
-//        normalizedMinValueTime = bundle.getDouble("MIN_TIME")
-//        normalizedMaxValueTime = bundle.getDouble("MAX_TIME")
-//    }
-
     fun setOnRangeSeekBarChangeListener(listener: OnRangeSeekBarChangeListener?) {
         mRangeSeekBarChangeListener = listener
     }
 
     private var mDuration = 0L
     fun setDuration(duration: Long) {
-        mDuration = duration
+//        mDuration = duration
+        mDuration = 10_000L
     }
 
     private var extraMsFromTimeline = 0L

@@ -53,7 +53,7 @@ const val KEY_COMPRESS_AFTER_TRIM = "compressAfterTrim"
 const val KEY_DO_ENCODE = "doEncode"
 const val KEY_DO_TRIM = "doTrim"
 
-const val DEBUG_TOUCH_AREA_ENABLED = false
+const val DEBUG_TOUCH_AREA_ENABLED = true
 
 const val DEFAULT_MIN_SECONDS = 1
 const val DEFAULT_MIN_DURATION = DEFAULT_MIN_SECONDS * 1000L
