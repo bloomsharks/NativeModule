@@ -140,6 +140,9 @@ class RangeSeekBarView @JvmOverloads constructor(
         mMinShootTime = minDuration
         mMaxShootTime = maxDuration
 
+
+        rightMs = maxDuration
+
         min =
             (mMinShootTime / (absoluteMaxValuePrim - absoluteMinValuePrim)) * (width - mPaddingLeft - mPaddingRight - thumbWidth)
         minWidth = if (absoluteMaxValuePrim > 5 * 60 * 1000) {
@@ -379,8 +382,32 @@ class RangeSeekBarView @JvmOverloads constructor(
         leftPos = max(mostLeft, min(value, mostRight.toFloat()))
     }
 
+    private fun updateLeftTime() {
+        val minMs = 0L
+        val maxMs = rightMs - mMinShootTime
+        val total = screenWidth - mPaddingLeft - mPaddingRight - thumbWidth - thumbWidth
+        val modValue = leftPos - mPaddingLeft
+        val calcTime = (modValue / total) * 100
+        val result = Utils.convertSecondsToTime(normalizedToValue(calcTime / 100.0) / 1000)
+
+        Log.d("MTTT", """
+            Left
+            leftPos: $leftPos;
+            modValue: $modValue;
+            total: $total;
+            mPaddingLeft: $mPaddingLeft;
+            thumbWidth: $thumbWidth;
+            minMs: $minMs; 
+            maxMs: $maxMs;
+            mDuration: $mDuration;
+            calcTime: $calcTime;
+        """.trimIndent())
+        leftThumbsTime = result.toString()
+    }
+
+
     private fun setRightPos(value: Float) {
-        val mostLeft = leftPos + thumbWidth + minWidth - progressWidth
+        val mostLeft = leftPos// + thumbWidth + minWidth - progressWidth
         val mostRight = width - thumbWidth - mPaddingRight
         rightPos = min(mostRight.toFloat(), max(mostLeft.toFloat(), value))
     }
@@ -586,44 +613,53 @@ class RangeSeekBarView @JvmOverloads constructor(
 
     private fun moveThumbL(screenCoordX: Float, mod: Float) {
 //        leftThumbsTime = Utils.convertSecondsToTime(mStartPosition / 1000)
-        leftThumbsTime = mStartPosition.toString()
+//        leftThumbsTime = mStartPosition.toString()
         setNormalizedMinValue(screenToNormalizedL(screenCoordX - mod - mPaddingLeft))
+        updateLeftTime()
     }
+
+    private var leftMs = 0L
+    private var rightMs = 0L
 
     private fun moveThumbR(screenCoordX: Float, mod: Float) {
 //        rightThumbsTime = Utils.convertSecondsToTime(mEndPosition / 1000)
         setNormalizedMaxValue(screenToNormalizedR(screenCoordX - mod + mPaddingRight))
-        updateRightTime(screenCoordX, mod)
+        updateRightTime(screenCoordX - mod + mPaddingRight)
     }
 
-    private fun updateRightTime(screenCoordX: Float, mod: Float) {
-        val minValue = abs(1 - (1 / 92.4) * 100)
-        val minValueTime = mMaxShootTime * minValue
-
-        val modValue = screenCoordX - mod
-        val total = width - mPaddingLeft - mPaddingRight
-
-        val calcTime = modValue / total
-
-        val minimum = normalizedMinValueTime + minValue
-        val maximum = 1.0
-
-        normalizedMaxValueTime = max(minimum, min(maximum, calcTime.toDouble()))
-        val normalizedValue = max(normalizedMinValueTime.toLong() + mMinShootTime, normalizedToValue(normalizedMaxValueTime))
-//        rightThumbsTime = Utils.convertSecondsToTime(normalizedValue / 1000)
-        rightThumbsTime = (normalizedValue).toString()
-//        MRRR lengthX:924.0, tenth:92.4, startX:78.0, endX:1002.0
-        Log.d("MRRR",
-            """right
-                minValue: $minValue; minValueTime: $minValueTime; min: $min;
-                modValue: $modValue; total: $total; screenWidth: $screenWidth;
-                calcTime: $calcTime; minimum: $minimum; maximum: $maximum;
-                thumbWidth: $thumbWidth; mPaddingLeft: $mPaddingLeft;
-                progressWidth: $progressWidth; mMinShootTime: $mMinShootTime;
-                normalizedMinValueTime: $normalizedMinValueTime; normalizedMaxValueTime: $normalizedMaxValueTime;
-                normalizedValue: $normalizedValue
-                rightThumbsTime: $rightThumbsTime
-            """.trimIndent())
+    private fun updateRightTime(modValue: Float) {
+        val minMs = leftMs + mMinShootTime
+        val maxMs = mMaxShootTime
+        println("MTTT Right updateRightTime($modValue); minMs:$minMs; maxMs:$maxMs;")
+//        val minValue = abs(1 - (1 / 92.4) * 100)
+//        val minValueTime = mMaxShootTime * minValue
+//
+//        val total = width - mPaddingLeft - mPaddingRight
+//
+//        val calcTime = modValue / total
+//
+//        val minimum = normalizedMinValueTime + minValue
+//        val maximum = 1.0
+//
+////        normalizedMaxValueTime = max(minimum, min(maximum, calcTime.toDouble()))
+//        normalizedMaxValueTime = calcTime.toDouble()
+////        val normalizedValue = max(normalizedMinValueTime.toLong() + mMinShootTime, normalizedToValue(normalizedMaxValueTime))
+//        val normalizedValue = normalizedToValue(normalizedMaxValueTime)
+////        rightThumbsTime = Utils.convertSecondsToTime(normalizedValue / 1000)
+//        rightMs = normalizedValue
+//        rightThumbsTime = (normalizedValue).toString()
+////        MRRR lengthX:924.0, tenth:92.4, startX:78.0, endX:1002.0
+//        Log.d("MRRR",
+//            """right
+//                minValue: $minValue; minValueTime: $minValueTime; min: $min;
+//                modValue: $modValue; total: $total; screenWidth: $screenWidth;
+//                calcTime: $calcTime; minimum: $minimum; maximum: $maximum;
+//                thumbWidth: $thumbWidth; mPaddingLeft: $mPaddingLeft;
+//                progressWidth: $progressWidth; mMinShootTime: $mMinShootTime;
+//                normalizedMinValueTime: $normalizedMinValueTime; normalizedMaxValueTime: $normalizedMaxValueTime;
+//                normalizedValue: $normalizedValue
+//                rightThumbsTime: $rightThumbsTime
+//            """.trimIndent())
     }
 
     private fun screenToNormalizedL(screenCoord: Float): Double {
