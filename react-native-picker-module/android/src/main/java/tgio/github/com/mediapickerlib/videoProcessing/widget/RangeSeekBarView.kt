@@ -270,7 +270,7 @@ class RangeSeekBarView @JvmOverloads constructor(
 
     private val markerPaint = Paint().apply {
         color = Color.YELLOW
-        strokeWidth = progressWidth.toFloat()
+        strokeWidth = 1.0F
         alpha = 80
     }
 
@@ -278,8 +278,8 @@ class RangeSeekBarView @JvmOverloads constructor(
         if (DEBUG_TOUCH_MARKERS.not()) {
             return
         }
-        val startX = mPaddingLeft.toFloat() + thumbWidth + (progressWidth / 2)
-        val endX = width - mPaddingRight.toFloat() - thumbWidth - (progressWidth / 2)
+        val startX = mPaddingLeft.toFloat() + thumbWidth
+        val endX = width - mPaddingRight.toFloat() - thumbWidth
         val lengthX = endX - startX
         val tenth = lengthX / (mMaxShootTime / 1000)
 
@@ -376,10 +376,18 @@ class RangeSeekBarView @JvmOverloads constructor(
         invalidate()
     }
 
+
+
     private fun setLeftPos(value: Float) {
         val mostLeft = mPaddingLeft.toFloat()
-        val mostRight = rightPos - thumbWidth - minWidth + progressWidth
+        val mostRight = rightPos - thumbWidth - minWidth
         leftPos = max(mostLeft, min(value, mostRight.toFloat()))
+    }
+
+    private fun setRightPos(value: Float) {
+        val mostLeft = leftPos + thumbWidth + minWidth
+        val mostRight = width - thumbWidth - mPaddingRight
+        rightPos = min(mostRight.toFloat(), max(mostLeft.toFloat(), value))
     }
 
     private fun updateLeftTime() {
@@ -387,8 +395,8 @@ class RangeSeekBarView @JvmOverloads constructor(
         val maxMs = rightMs - mMinShootTime
         val total = screenWidth - mPaddingLeft - mPaddingRight - thumbWidth - thumbWidth
         val modValue = leftPos - mPaddingLeft
-        val calcTime = (modValue / total) * 100
-        leftMs = normalizedToValue(calcTime / 100.0)
+        val calcTime = modValue / total
+        leftMs = normalizedToValue(calcTime.toDouble())
         val result = Utils.convertSecondsToTime((leftMs + extraMsFromTimeline ) / 1000)
 
         Log.d("MTTT", """
@@ -405,13 +413,19 @@ class RangeSeekBarView @JvmOverloads constructor(
             leftMs: $leftMs;
             extraMsFromTimeline: $extraMsFromTimeline;
         """.trimIndent())
-        leftThumbsTime = result
+//        leftThumbsTime = result
+        leftThumbsTime = leftMs.toString()
     }
 
-    private fun setRightPos(value: Float) {
-        val mostLeft = leftPos// + thumbWidth + minWidth - progressWidth
-        val mostRight = width - thumbWidth - mPaddingRight
-        rightPos = min(mostRight.toFloat(), max(mostLeft.toFloat(), value))
+    private fun updateRightTime() {
+        val total = screenWidth - mPaddingRight - thumbWidth - thumbWidth - mPaddingLeft
+        val modValue = screenWidth - rightPos - mPaddingLeft - thumbWidth
+        val calcTime = modValue / total
+        rightMs = normalizedToValue(calcTime.toDouble())
+        val result = Utils.convertSecondsToTime((rightMs + extraMsFromTimeline ) / 1000)
+
+//        rightThumbsTime = result
+        rightThumbsTime = rightMs.toString()
     }
 
     private fun calcDrawPositions() {
@@ -626,42 +640,7 @@ class RangeSeekBarView @JvmOverloads constructor(
     private fun moveThumbR(screenCoordX: Float, mod: Float) {
 //        rightThumbsTime = Utils.convertSecondsToTime(mEndPosition / 1000)
         setNormalizedMaxValue(screenToNormalizedR(screenCoordX - mod + mPaddingRight))
-        updateRightTime(screenCoordX - mod + mPaddingRight)
-    }
-
-    private fun updateRightTime(modValue: Float) {
-        val minMs = leftMs + mMinShootTime
-        val maxMs = mMaxShootTime
-        println("MTTT Right updateRightTime($modValue); minMs:$minMs; maxMs:$maxMs;")
-//        val minValue = abs(1 - (1 / 92.4) * 100)
-//        val minValueTime = mMaxShootTime * minValue
-//
-//        val total = width - mPaddingLeft - mPaddingRight
-//
-//        val calcTime = modValue / total
-//
-//        val minimum = normalizedMinValueTime + minValue
-//        val maximum = 1.0
-//
-////        normalizedMaxValueTime = max(minimum, min(maximum, calcTime.toDouble()))
-//        normalizedMaxValueTime = calcTime.toDouble()
-////        val normalizedValue = max(normalizedMinValueTime.toLong() + mMinShootTime, normalizedToValue(normalizedMaxValueTime))
-//        val normalizedValue = normalizedToValue(normalizedMaxValueTime)
-////        rightThumbsTime = Utils.convertSecondsToTime(normalizedValue / 1000)
-//        rightMs = normalizedValue
-//        rightThumbsTime = (normalizedValue).toString()
-////        MRRR lengthX:924.0, tenth:92.4, startX:78.0, endX:1002.0
-//        Log.d("MRRR",
-//            """right
-//                minValue: $minValue; minValueTime: $minValueTime; min: $min;
-//                modValue: $modValue; total: $total; screenWidth: $screenWidth;
-//                calcTime: $calcTime; minimum: $minimum; maximum: $maximum;
-//                thumbWidth: $thumbWidth; mPaddingLeft: $mPaddingLeft;
-//                progressWidth: $progressWidth; mMinShootTime: $mMinShootTime;
-//                normalizedMinValueTime: $normalizedMinValueTime; normalizedMaxValueTime: $normalizedMaxValueTime;
-//                normalizedValue: $normalizedValue
-//                rightThumbsTime: $rightThumbsTime
-//            """.trimIndent())
+        updateRightTime()
     }
 
     private fun screenToNormalizedL(screenCoord: Float): Double {
