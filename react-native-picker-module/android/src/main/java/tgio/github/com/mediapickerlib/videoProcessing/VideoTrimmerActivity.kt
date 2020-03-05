@@ -138,8 +138,8 @@ class VideoTrimmerActivity : AppCompatActivity(R.layout.bloom_native_activity_vi
         setupViews()
         setUpListeners()
 
-//        paramVideoPath = "/sdcard/Download/portrait.mp4"
-        paramVideoPath = "/sdcard/Download/bbb.mp4"
+        paramVideoPath = "/sdcard/Download/portrait.mp4"
+//        paramVideoPath = "/sdcard/Download/bbb.mp4"
 
         if (paramVideoPath.isNullOrBlank()) {
             postError("paramVideoPath is missing")

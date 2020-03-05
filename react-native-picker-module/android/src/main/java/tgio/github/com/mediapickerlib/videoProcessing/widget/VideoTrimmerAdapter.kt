@@ -46,13 +46,13 @@ class VideoTrimmerAdapter(
 
             Glide.with(holder.thumbImageView.context)
                 .asBitmap()
-                .load("")
-//                .load(mVideoPath)
+//                .load("")
+                .load(mVideoPath)
                 .override(holder.thumbImageView.width, holder.thumbImageView.height)
                 .apply(options)
                 .downsample(DownsampleStrategy.CENTER_INSIDE)
-//                .placeholder(if (position % 2 == 0) R.drawable.bloom_native_thumbnail_placeholder else R.drawable.bloom_native_thumbnail_placeholder2)
-                .placeholder(R.drawable.bloom_native_thumbnail_placeholder)
+                .placeholder(if (position % 2 == 0) R.drawable.bloom_native_thumbnail_placeholder else R.drawable.bloom_native_thumbnail_placeholder2)
+//                .placeholder(R.drawable.bloom_native_thumbnail_placeholder)
                 .into(holder.thumbImageView)
         }
     }

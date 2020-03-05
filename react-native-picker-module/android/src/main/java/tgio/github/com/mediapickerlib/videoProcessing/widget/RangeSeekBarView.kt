@@ -144,7 +144,7 @@ class RangeSeekBarView @JvmOverloads constructor(
         rightMs = maxDuration
 
         min =
-            (mMinShootTime / (absoluteMaxValuePrim - absoluteMinValuePrim)) * (width - mPaddingLeft - mPaddingRight - thumbWidth)
+            (mMinShootTime / (absoluteMaxValuePrim - absoluteMinValuePrim)) * (width - mPaddingLeft - mPaddingRight - thumbWidth - thumbWidth)
         minWidth = if (absoluteMaxValuePrim > 5 * 60 * 1000) {
             val df = DecimalFormat("0.0000")
             df.format(min).toDouble()
@@ -254,7 +254,7 @@ class RangeSeekBarView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         if (width > 0) {
-            drawShadows(canvas)
+//            drawShadows(canvas)
             drawVideoTrimTimeText(canvas)
 
             drawTouchAreas(canvas)
@@ -271,7 +271,7 @@ class RangeSeekBarView @JvmOverloads constructor(
     private val markerPaint = Paint().apply {
         color = Color.YELLOW
         strokeWidth = 1.0F
-        alpha = 80
+        alpha = 255
     }
 
     private fun drawMarkers(canvas: Canvas) {
@@ -396,7 +396,7 @@ class RangeSeekBarView @JvmOverloads constructor(
         val total = screenWidth - mPaddingLeft - mPaddingRight - thumbWidth - thumbWidth
         val modValue = leftPos - mPaddingLeft
         val calcTime = modValue / total
-        leftMs = normalizedToValue(calcTime.toDouble())
+        leftMs = normalizedToValue(calcTime.toDouble()) + 3
         val result = Utils.convertSecondsToTime((leftMs + extraMsFromTimeline ) / 1000)
 
         Log.d("MTTT", """
@@ -413,19 +413,19 @@ class RangeSeekBarView @JvmOverloads constructor(
             leftMs: $leftMs;
             extraMsFromTimeline: $extraMsFromTimeline;
         """.trimIndent())
-//        leftThumbsTime = result
-        leftThumbsTime = leftMs.toString()
+        leftThumbsTime = result
+//        leftThumbsTime = leftMs.toString()
     }
 
     private fun updateRightTime() {
         val total = screenWidth - mPaddingRight - thumbWidth - thumbWidth - mPaddingLeft
         val modValue = screenWidth - rightPos - mPaddingLeft - thumbWidth
         val calcTime = modValue / total
-        rightMs = normalizedToValue(calcTime.toDouble())
+        rightMs = mMaxShootTime - normalizedToValue(calcTime.toDouble())
         val result = Utils.convertSecondsToTime((rightMs + extraMsFromTimeline ) / 1000)
 
-//        rightThumbsTime = result
-        rightThumbsTime = rightMs.toString()
+        rightThumbsTime = result
+//        rightThumbsTime = rightMs.toString()
     }
 
     private fun calcDrawPositions() {
@@ -775,8 +775,7 @@ class RangeSeekBarView @JvmOverloads constructor(
 
     private var mDuration = 0L
     fun setDuration(duration: Long) {
-//        mDuration = duration
-        mDuration = 10_000L
+        mDuration = duration
     }
 
     private var extraMsFromTimeline = 0L

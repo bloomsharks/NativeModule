@@ -54,7 +54,7 @@ const val KEY_DO_ENCODE = "doEncode"
 const val KEY_DO_TRIM = "doTrim"
 
 const val DEBUG_TOUCH_AREA_ENABLED = false
-const val DEBUG_TOUCH_MARKERS = true
+const val DEBUG_TOUCH_MARKERS = false
 
 const val DEFAULT_MIN_SECONDS = 1
 const val DEFAULT_MIN_DURATION = DEFAULT_MIN_SECONDS * 1000L
