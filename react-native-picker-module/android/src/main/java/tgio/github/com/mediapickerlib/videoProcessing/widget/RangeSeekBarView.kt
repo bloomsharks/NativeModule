@@ -388,7 +388,8 @@ class RangeSeekBarView @JvmOverloads constructor(
         val total = screenWidth - mPaddingLeft - mPaddingRight - thumbWidth - thumbWidth
         val modValue = leftPos - mPaddingLeft
         val calcTime = (modValue / total) * 100
-        val result = Utils.convertSecondsToTime(normalizedToValue(calcTime / 100.0) / 1000)
+        leftMs = normalizedToValue(calcTime / 100.0)
+        val result = Utils.convertSecondsToTime((leftMs + extraMsFromTimeline ) / 1000)
 
         Log.d("MTTT", """
             Left
@@ -401,10 +402,11 @@ class RangeSeekBarView @JvmOverloads constructor(
             maxMs: $maxMs;
             mDuration: $mDuration;
             calcTime: $calcTime;
+            leftMs: $leftMs;
+            extraMsFromTimeline: $extraMsFromTimeline;
         """.trimIndent())
-        leftThumbsTime = result.toString()
+        leftThumbsTime = result
     }
-
 
     private fun setRightPos(value: Float) {
         val mostLeft = leftPos// + thumbWidth + minWidth - progressWidth
@@ -805,7 +807,8 @@ class RangeSeekBarView @JvmOverloads constructor(
             selectedMinValue + extraMsFromTimeline,
             selectedMaxValue + extraMsFromTimeline
         )
-        leftThumbsTime = Utils.convertSecondsToTime(mStartPosition / 1000)
+        println("MTTT extraMs:$extraMs; leftMs:$leftMs;")
+        leftThumbsTime = Utils.convertSecondsToTime((leftMs + extraMs) / 1000)
         rightThumbsTime = Utils.convertSecondsToTime(mEndPosition / 1000)
         calcDrawPositions()
         invalidate()
