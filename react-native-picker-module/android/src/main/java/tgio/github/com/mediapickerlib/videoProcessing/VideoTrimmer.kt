@@ -229,7 +229,6 @@ class VideoTrimmer(
 
     override fun onPrepared(mp: MediaPlayer) {
         if(isPrepared.not()) {
-
             isPrepared = true
             seekTo(0)
         }

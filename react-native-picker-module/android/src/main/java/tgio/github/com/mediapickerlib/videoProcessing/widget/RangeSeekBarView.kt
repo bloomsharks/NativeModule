@@ -139,7 +139,7 @@ class RangeSeekBarView @JvmOverloads constructor(
         rightMs = maxDuration
 
         min =
-            (mMinShootTime / (absoluteMaxValuePrim - absoluteMinValuePrim)) * (width - mPaddingLeft - mPaddingRight - thumbWidth - thumbWidth)
+            (mMinShootTime / (absoluteMaxValuePrim - absoluteMinValuePrim)) * (getNotNullWidth() - mPaddingLeft - mPaddingRight - thumbWidth - thumbWidth)
         minWidth = if (absoluteMaxValuePrim > 5 * 60 * 1000) {
             val df = DecimalFormat("0.0000")
             df.format(min).toDouble()
@@ -274,7 +274,7 @@ class RangeSeekBarView @JvmOverloads constructor(
             return
         }
         val startX = mPaddingLeft.toFloat() + thumbWidth
-        val endX = width - mPaddingRight.toFloat() - thumbWidth
+        val endX = getNotNullWidth() - mPaddingRight.toFloat() - thumbWidth
         val lengthX = endX - startX
         val tenth = lengthX / (mMaxShootTime / 1000)
 
@@ -378,10 +378,12 @@ class RangeSeekBarView @JvmOverloads constructor(
 
     private fun setRightPos(value: Float) {
         val mostLeft = leftPos + thumbWidth + minWidth
-        val mostRight = width - mPaddingRight - mPaddingRight
+        val mostRight = getNotNullWidth() - mPaddingRight - mPaddingRight
         rightPos = min(mostRight.toFloat(), max(mostLeft.toFloat(), value))
         println("ISKNDR setRightPos($value) set to $rightPos width:$width")
     }
+
+    private fun getNotNullWidth() = screenWidth
 
     private fun updateLeftTime() {
         val total = screenWidth - mPaddingLeft - mPaddingRight - thumbWidth - thumbWidth
@@ -645,7 +647,7 @@ class RangeSeekBarView @JvmOverloads constructor(
         val calcPos = (screenCoord.toDouble()) / (getSafeWidth() - thumbWidth)
         val result = min(1.0, max(0.0, calcPos))
 
-        val total = width - mPaddingRight - thumbWidth - thumbWidth - mPaddingLeft - progressWidth
+        val total = getNotNullWidth() - mPaddingRight - thumbWidth - thumbWidth - mPaddingLeft - progressWidth
         val part = screenCoord.toDouble() - mPaddingLeft
         val calcTime = part / total
         normalizedMinValueTime = min(1.0, max(0.0, calcTime))
@@ -656,7 +658,7 @@ class RangeSeekBarView @JvmOverloads constructor(
         val calcPos = screenCoord.toDouble() / getSafeWidth()
         val result = min(1.0, max(0.0, calcPos))
 
-        val total = width - mPaddingLeft - mPaddingRight - thumbWidth * 2 - progressWidth
+        val total = getNotNullWidth() - mPaddingLeft - mPaddingRight - thumbWidth * 2 - progressWidth
         val part = screenCoord.toDouble() - thumbWidth - mPaddingLeft
         val calcTime = part / total
         normalizedMaxValueTime = min(1.0, max(0.0, calcTime))
