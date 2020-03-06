@@ -5,7 +5,6 @@ import android.content.Context
 import android.graphics.*
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
@@ -65,7 +64,7 @@ class RangeSeekBarView @JvmOverloads constructor(
     private var thumbCornerRadius = 0
 
     private var leftThumbsTime = Utils.convertSecondsToTime(0)
-    private var rightThumbsTime = Utils.convertSecondsToTime(0)
+    private var rightThumbsTime = Utils.convertSecondsToTime(DEFAULT_MIN_SECONDS.toLong())
     private var leftPos = 0F
     private var progressPos = 0F
     private var leftTextPos = 0F
@@ -74,9 +73,6 @@ class RangeSeekBarView @JvmOverloads constructor(
 
     var isNotifyWhileDragging = false
     private var mRangeSeekBarChangeListener: OnRangeSeekBarChangeListener? = null
-
-    private val valueLength: Int
-        get() = getSafeWidth() - mPaddingLeft - mPaddingRight
 
     var selectedMinValue: Long
         get() = normalizedToValue(normalizedMinValueTime)
@@ -254,14 +250,14 @@ class RangeSeekBarView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         if (width > 0) {
-//            drawShadows(canvas)
+            drawShadows(canvas)
             drawVideoTrimTimeText(canvas)
 
             drawTouchAreas(canvas)
 
 
             drawThumb(leftPos, canvas, true)
-//            drawProgress(canvas)
+            drawProgress(canvas)
             drawThumb(rightPos, canvas, false)
 
             drawMarkers(canvas)
@@ -282,8 +278,6 @@ class RangeSeekBarView @JvmOverloads constructor(
         val endX = width - mPaddingRight.toFloat() - thumbWidth
         val lengthX = endX - startX
         val tenth = lengthX / (mMaxShootTime / 1000)
-
-//        println("drawMarkers lengthX:$lengthX, tenth:$tenth, startX:$startX, endX:$endX")
 
         for(i in 0..mMaxShootTime) {
             canvas.drawLine(
@@ -386,40 +380,22 @@ class RangeSeekBarView @JvmOverloads constructor(
 
     private fun setRightPos(value: Float) {
         val mostLeft = leftPos + thumbWidth + minWidth
-        val mostRight = width - thumbWidth - mPaddingRight
+        val mostRight = width - mPaddingRight - mPaddingRight
         rightPos = min(mostRight.toFloat(), max(mostLeft.toFloat(), value))
     }
 
     private fun updateLeftTime() {
-        val minMs = 0L
-        val maxMs = rightMs - mMinShootTime
         val total = screenWidth - mPaddingLeft - mPaddingRight - thumbWidth - thumbWidth
-        val modValue = leftPos - mPaddingLeft
+        val modValue = leftPos - thumbWidth
         val calcTime = modValue / total
         leftMs = normalizedToValue(calcTime.toDouble()) + 3
         val result = Utils.convertSecondsToTime((leftMs + extraMsFromTimeline ) / 1000)
-
-        Log.d("MTTT", """
-            Left
-            leftPos: $leftPos;
-            modValue: $modValue;
-            total: $total;
-            mPaddingLeft: $mPaddingLeft;
-            thumbWidth: $thumbWidth;
-            minMs: $minMs; 
-            maxMs: $maxMs;
-            mDuration: $mDuration;
-            calcTime: $calcTime;
-            leftMs: $leftMs;
-            extraMsFromTimeline: $extraMsFromTimeline;
-        """.trimIndent())
         leftThumbsTime = result
-//        leftThumbsTime = leftMs.toString()
     }
 
     private fun updateRightTime() {
         val total = screenWidth - mPaddingRight - thumbWidth - thumbWidth - mPaddingLeft
-        val modValue = screenWidth - rightPos - mPaddingLeft - thumbWidth
+        val modValue = screenWidth - rightPos - mPaddingLeft - mPaddingRight
         val calcTime = modValue / total
         rightMs = mMaxShootTime - normalizedToValue(calcTime.toDouble())
         val result = Utils.convertSecondsToTime((rightMs + extraMsFromTimeline ) / 1000)
@@ -428,14 +404,17 @@ class RangeSeekBarView @JvmOverloads constructor(
 //        rightThumbsTime = rightMs.toString()
     }
 
+    private var initialLayout = true
+
     private fun calcDrawPositions() {
         if (pressedThumb == Thumb.L) {
             setLeftPos(normalizedToScreen(normalizedMinValue))
         } else if (pressedThumb == Thumb.R) {
             setRightPos(normalizedToScreen(normalizedMaxValue) - thumbWidth - mPaddingLeft)
-        } else if (mIsSeeking.not()) {
+        } else if (mIsSeeking.not() && initialLayout) {
             setLeftPos(normalizedToScreen(normalizedMinValue))
             setRightPos(normalizedToScreen(normalizedMaxValue) - thumbWidth - mPaddingLeft)
+            initialLayout = false
         }
 
         setProgressPos(leftPos)
@@ -510,7 +489,6 @@ class RangeSeekBarView @JvmOverloads constructor(
 
                 pressedThumb = evalPressedThumb(mDownMotionX)
                 if (pressedThumb == null) {
-                    println("XDIFFF no thumb pressed.")
                     return super.onTouchEvent(event)
                 }
 
@@ -527,8 +505,8 @@ class RangeSeekBarView @JvmOverloads constructor(
 
                 mRangeSeekBarChangeListener?.onRangeSeekBarValuesChanged(
                     bar = this,
-                    minValue = selectedMinValue,
-                    maxValue = selectedMaxValue,
+                    minValue = leftMs,
+                    maxValue = rightMs,
                     action = MotionEvent.ACTION_DOWN,
                     positionHasBeenChanged = false,
                     pressedThumb = pressedThumb
@@ -549,8 +527,8 @@ class RangeSeekBarView @JvmOverloads constructor(
                 if (isNotifyWhileDragging) {
                     mRangeSeekBarChangeListener?.onRangeSeekBarValuesChanged(
                         bar = this,
-                        minValue = selectedMinValue,
-                        maxValue = selectedMaxValue,
+                        minValue = leftMs,
+                        maxValue = rightMs,
                         action = MotionEvent.ACTION_MOVE,
                         positionHasBeenChanged = true,
                         pressedThumb = pressedThumb
@@ -573,8 +551,8 @@ class RangeSeekBarView @JvmOverloads constructor(
                 }
                 mRangeSeekBarChangeListener?.onRangeSeekBarValuesChanged(
                     bar = this,
-                    minValue = selectedMinValue,
-                    maxValue = selectedMaxValue,
+                    minValue = leftMs,
+                    maxValue = rightMs,
                     action = MotionEvent.ACTION_UP,
                     positionHasBeenChanged = positionHasBeenChanged,
                     pressedThumb = pressedThumb
@@ -637,8 +615,13 @@ class RangeSeekBarView @JvmOverloads constructor(
     private var leftMs = 0L
     private var rightMs = 0L
 
+    fun getRightMs(): Long {
+        return rightMs
+    }
+
+    fun getLength(): Long = max(mMinShootTime, min(mMaxShootTime, abs(rightMs - leftMs + 36)))
+
     private fun moveThumbR(screenCoordX: Float, mod: Float) {
-//        rightThumbsTime = Utils.convertSecondsToTime(mEndPosition / 1000)
         setNormalizedMaxValue(screenToNormalizedR(screenCoordX - mod + mPaddingRight))
         updateRightTime()
     }
@@ -785,9 +768,8 @@ class RangeSeekBarView @JvmOverloads constructor(
             selectedMinValue + extraMsFromTimeline,
             selectedMaxValue + extraMsFromTimeline
         )
-        println("MTTT extraMs:$extraMs; leftMs:$leftMs;")
         leftThumbsTime = Utils.convertSecondsToTime((leftMs + extraMs) / 1000)
-        rightThumbsTime = Utils.convertSecondsToTime(mEndPosition / 1000)
+        rightThumbsTime = Utils.convertSecondsToTime((rightMs + extraMs) / 1000)
         calcDrawPositions()
         invalidate()
     }
