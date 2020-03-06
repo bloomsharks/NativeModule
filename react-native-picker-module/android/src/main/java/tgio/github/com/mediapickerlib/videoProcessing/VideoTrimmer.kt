@@ -257,10 +257,19 @@ class VideoTrimmer(
         }
         val to = rangeSeekBarView.getRightPos()
 
+        var fromMs = 0
+        var toMs = 0L
 
-
-        var fromMs = videoView.currentPosition
-        var toMs = rangeSeekBarView.getRightMs()
+        if(selectedThumb == RangeSeekBarView.Thumb.L) {
+            fromMs = videoView.currentPosition
+            toMs = fromMs + 100L
+        } else if(selectedThumb == RangeSeekBarView.Thumb.R) {
+            toMs = rangeSeekBarView.getRightMs()
+            fromMs = toMs.toInt() - 100
+        } else {
+            fromMs = videoView.currentPosition
+            toMs = rangeSeekBarView.getRightMs()
+        }
 
         if(fromMs > toMs) {
             fromMs = toMs.toInt() - 100
@@ -298,7 +307,9 @@ class VideoTrimmer(
                 }
                 rangeSeekBarView.setProgressPos(rangeSeekBarView.getRightPos())
             } else {
-                setIsPlaying.invoke(false)
+                if(isSeeking.not()) {
+                    setIsPlaying.invoke(false)
+                }
                 seekTo(mLeftProgressPos)
                 rangeSeekBarView.setProgressPos(rangeSeekBarView.getLeftPos())
             }
