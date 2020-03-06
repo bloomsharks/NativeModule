@@ -29,6 +29,7 @@ class VideoTrimmerActivity : AppCompatActivity(R.layout.bloom_native_activity_vi
     private lateinit var mVideoView: VideoView
     private lateinit var mTimelineView: TimelineView
     private lateinit var ivPlayPause: ImageView
+    private lateinit var ivThumbnail: ImageView
     private lateinit var mRangeSeekBarView: RangeSeekBarView
     private lateinit var mSeekBarLayout: LinearLayout
     private var mSourceUri: Uri? = null
@@ -140,7 +141,14 @@ class VideoTrimmerActivity : AppCompatActivity(R.layout.bloom_native_activity_vi
 
 //        paramVideoPath = "/sdcard/Download/portrait.mp4"
 //        paramVideoPath = "/sdcard/Download/bbb.mp4"
-        paramVideoPath = "/sdcard/Download/Watchmen-2019-S01-E01-RUS-MEDIUM.mp4"
+//        paramVideoPath = "/sdcard/Download/Watchmen-2019-S01-E01-RUS-MEDIUM.mp4"
+
+        val videoMetaData = intent.getParcelableExtra<MetaDataUtils.VideoMetaData>(KEY_VIDEO_META_DATA)
+
+        ivThumbnail.setImageURI(Uri.parse(videoMetaData.thumbnailPath))
+        applyVideoViewParams(videoHeight = videoMetaData.height.toInt(), videoWidth = videoMetaData.width.toInt())
+
+        println("videoMetaData $videoMetaData")
 
         if (paramVideoPath.isNullOrBlank()) {
             postError("paramVideoPath is missing")
@@ -160,7 +168,7 @@ class VideoTrimmerActivity : AppCompatActivity(R.layout.bloom_native_activity_vi
                 videoSource = mSourceUri!!,
                 setIsPlaying = ::setIsPlaying,
                 setDurationText = ::setDurationText,
-                applyVideoViewParams = ::applyVideoViewParams
+                videoReady = ::onVideoReady
             )
         videoTrimmer.reset()
     }
@@ -206,6 +214,7 @@ class VideoTrimmerActivity : AppCompatActivity(R.layout.bloom_native_activity_vi
         mVideoView = findViewById(R.id.video_loader)
         mTimelineView = findViewById(R.id.timelineView)
         ivPlayPause = findViewById(R.id.ivPlayPause)
+        ivThumbnail = findViewById(R.id.ivThumbnail)
         mSeekBarLayout = findViewById(R.id.seekBarLayout)
 
         mRangeSeekBarView =
@@ -224,17 +233,29 @@ class VideoTrimmerActivity : AppCompatActivity(R.layout.bloom_native_activity_vi
         tvDuration.text = "Duration ${Utils.convertSecondsToTime(millis / 1000)} min"
     }
 
+    private fun onVideoReady() {
+        println("videoMetaData onVideoReady")
+        ivThumbnail.visibility = View.GONE
+    }
+
     private fun applyVideoViewParams(videoWidth: Int, videoHeight: Int) {
+        println("videoMetaData applyVideoViewParams() videoWidth = [${videoWidth}], videoHeight = [${videoHeight}]")
+        val screenWidth = resources.displayMetrics.widthPixels
+        val screenHeight = resources.displayMetrics.heightPixels
         val lp = mLinearVideo.layoutParams
-        val screenHeight = mLinearVideo.height
         val r = videoHeight / videoWidth.toFloat()
+
         if (videoHeight > videoWidth) {
-            lp.height = screenHeight
-            overlay.layoutParams.width = mVideoView.width
+//            lp.height = screenHeight
+            lp.width = (lp.height / r).toInt()
+            overlay.layoutParams.width = lp.width
+            println("videoMetaData 1 : ${lp.width}")
         } else if(videoHeight < videoWidth) {
-            lp.height = (lp.width * r).toInt()
+            lp.height = (screenWidth * r).toInt()
+            println("videoMetaData 2 height:${lp.height} width:${lp.width} r:$r")
         } else {
             lp.height = mLinearVideo.width
+            println("videoMetaData 3")
         }
         mLinearVideo.layoutParams = lp
     }
@@ -289,12 +310,13 @@ class VideoTrimmerActivity : AppCompatActivity(R.layout.bloom_native_activity_vi
             context: Context,
             videoPath: String,
             request: Video,
-            originalFileName: String
+            originalFileName: String,
+            videoMetaData: MetaDataUtils.VideoMetaData
         ): Intent {
-
             return Intent(context, VideoTrimmerActivity::class.java).apply {
                 putExtra(KEY_VIDEO_PATH, videoPath)
                 putExtra(KEY_ORIGINAL_FILE_NAME, originalFileName)
+                putExtra(KEY_VIDEO_META_DATA, videoMetaData)
                 putExtras(request.toBundle())
             }
         }

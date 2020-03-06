@@ -64,7 +64,12 @@ class NativePicker(
             context = activity,
             videoPath = videoPath,
             request = pickMediaRequest as Video,
-            originalFileName = originalFileName
+            originalFileName = originalFileName,
+            videoMetaData = MetaDataUtils.getVideoMetaData(
+                context = activity,
+                filePath = Uri.parse(videoPath),
+                thumbnailQuality = 100
+            )
         ),
         requestCode = REQUEST_TRIM_VIDEO
     )

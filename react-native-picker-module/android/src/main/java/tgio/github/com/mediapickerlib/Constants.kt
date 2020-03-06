@@ -43,6 +43,7 @@ const val PICK_REQUEST_TYPE_PHOTO = 1
 const val PICK_REQUEST_TYPE_VIDEO = 2
 const val PICK_REQUEST_TYPE_FILES = 3
 
+const val KEY_VIDEO_META_DATA = "VideoMetaData"
 const val KEY_ORIGINAL_FILE_NAME = "originalFileName"
 const val KEY_FILE_SIZE = "fileSize"
 const val KEY_VIDEO_PATH = "videoPath"

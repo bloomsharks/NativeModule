@@ -32,7 +32,7 @@ class VideoTrimmer(
     private val videoSource: Uri,
     private val setIsPlaying: (Boolean) -> Unit,
     private val setDurationText: (Long) -> Unit,
-    private val applyVideoViewParams: (Int, Int) -> Unit
+    private val videoReady: () -> Unit
 ) : RecyclerView.OnScrollListener(),
     OnRangeSeekBarChangeListener,
     MediaPlayer.OnPreparedListener {
@@ -220,7 +220,6 @@ class VideoTrimmer(
 
     override fun onPrepared(mp: MediaPlayer) {
         if(isPrepared.not()) {
-            applyVideoViewParams.invoke(mp.videoWidth, mp.videoHeight)
             mDuration = videoView.duration.toLong()
             rangeSeekBarView.setDuration(mDuration)
             calcrangeSeekBarView()
@@ -233,6 +232,7 @@ class VideoTrimmer(
             isPrepared = true
             seekTo(0)
         }
+        videoReady.invoke()
     }
 
     fun reset() {
