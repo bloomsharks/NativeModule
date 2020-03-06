@@ -34,11 +34,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:fontFamily="@font/proxima_nova_regular"
+        android:fontFamily="@font/proxima_nova_bold"
         android:text="Cutter"
-        android:textColor="#1B252E"
-        android:textSize="15sp"
-        android:textStyle="bold" />
+        android:letterSpacing="0.02"
+        android:lineSpacingExtra="2sp"
+        android:textColor="@color/bloom_native_dark"
+        android:textSize="15sp" />
 
     <Button
         android:id="@+id/btnSave"
@@ -58,6 +59,12 @@
         android:textStyle="bold" />
 
   </androidx.appcompat.widget.Toolbar>
+  
+  <View
+      android:layout_width="match_parent"
+      android:layout_height="2dp"
+      android:background="@drawable/toolbar_shadow"
+      constraint:layout_constraintTop_toBottomOf="@+id/toolbar"/>
 
   <RelativeLayout
       android:id="@+id/layout_surface_view"
@@ -106,9 +113,11 @@
       android:id="@+id/tvDuration"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:layout_marginTop="12dp"
+      android:layout_marginTop="10dp"
       android:fontFamily="@font/proxima_nova_regular"
+      android:letterSpacing="0.02"
       android:textColor="#1B252E"
+      android:includeFontPadding="false"
       android:textSize="13sp"
       constraint:layout_constraintEnd_toEndOf="parent"
       constraint:layout_constraintStart_toStartOf="parent"
@@ -180,6 +189,9 @@
       android:text="Reset"
       android:textAllCaps="false"
       android:textColor="#FFF"
+      android:letterSpacing="0.02"
+      android:gravity="center"
+      android:includeFontPadding="false"
       android:textSize="15sp"
       constraint:layout_constraintBottom_toBottomOf="parent"
       constraint:layout_constraintEnd_toEndOf="parent"
