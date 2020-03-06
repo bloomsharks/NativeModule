@@ -140,8 +140,6 @@ class VideoTrimmerActivity : AppCompatActivity(R.layout.bloom_native_activity_vi
         setUpListeners()
 
 //        paramVideoPath = "/sdcard/Download/portrait.mp4"
-//        paramVideoPath = "/sdcard/Download/bbb.mp4"
-//        paramVideoPath = "/sdcard/Download/Watchmen-2019-S01-E01-RUS-MEDIUM.mp4"
 
         val videoMetaData = intent.getParcelableExtra<MetaDataUtils.VideoMetaData>(KEY_VIDEO_META_DATA)
 
@@ -225,7 +223,7 @@ class VideoTrimmerActivity : AppCompatActivity(R.layout.bloom_native_activity_vi
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayShowTitleEnabled(false)
         setDurationText(paramMaxDuration / 1000)
-        tvStaticText.text = "You can upload max ${paramMaxDuration / 1000} sec Video"
+        tvStaticText.text = "You can upload max ${paramMaxDuration / 1000} second Video"
     }
 
     private fun setDurationText(millis: Long) {
