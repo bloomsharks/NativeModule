@@ -32,7 +32,8 @@ class VideoTrimmer(
     private val videoSource: Uri,
     private val setIsPlaying: (Boolean) -> Unit,
     private val setDurationText: (Long) -> Unit,
-    private val videoReady: () -> Unit
+    private val videoReady: () -> Unit,
+    private val mDuration: Long
 ) : RecyclerView.OnScrollListener(),
     OnRangeSeekBarChangeListener,
     MediaPlayer.OnPreparedListener {
@@ -43,7 +44,6 @@ class VideoTrimmer(
     private var mMaxWidth = 0
     private var mAverageMsPx = 0f
     private var averagePxMs = 0f
-    private var mDuration = 0L
     private var mMaxDuration = 0L
     private var mLeftProgressPos: Long = 0
     private var mRightProgressPos: Long = 0
@@ -68,6 +68,15 @@ class VideoTrimmer(
         rangeSeekBarView.setOnRangeSeekBarChangeListener(this)
         videoView.setOnPreparedListener(this)
         videoView.setVideoURI(videoSource)
+
+        rangeSeekBarView.setDuration(mDuration)
+        calcrangeSeekBarView()
+        timelineView.setData(
+            videoLengthMs = mDuration,
+            numThumbs = mThumbsTotalCount,
+            videoPath = videoSource.path!!,
+            maxDisplayedThumbsCount = paramMaxDisplayedThumbs
+        )
     }
 
     fun compress(sourcePath: String, outputPath: String, listener: VideoCompressListener) {
@@ -220,15 +229,7 @@ class VideoTrimmer(
 
     override fun onPrepared(mp: MediaPlayer) {
         if(isPrepared.not()) {
-            mDuration = videoView.duration.toLong()
-            rangeSeekBarView.setDuration(mDuration)
-            calcrangeSeekBarView()
-            timelineView.setData(
-                videoLengthMs = mDuration,
-                numThumbs = mThumbsTotalCount,
-                videoPath = videoSource.path!!,
-                maxDisplayedThumbsCount = paramMaxDisplayedThumbs
-            )
+
             isPrepared = true
             seekTo(0)
         }

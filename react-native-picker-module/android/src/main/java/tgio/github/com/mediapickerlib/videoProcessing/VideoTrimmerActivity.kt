@@ -168,7 +168,8 @@ class VideoTrimmerActivity : AppCompatActivity(R.layout.bloom_native_activity_vi
                 videoSource = mSourceUri!!,
                 setIsPlaying = ::setIsPlaying,
                 setDurationText = ::setDurationText,
-                videoReady = ::onVideoReady
+                videoReady = ::onVideoReady,
+                mDuration = videoMetaData.durationMillis.toLong()
             )
         videoTrimmer.reset()
     }

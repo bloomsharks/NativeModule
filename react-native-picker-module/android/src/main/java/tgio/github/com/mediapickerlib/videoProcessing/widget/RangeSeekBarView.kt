@@ -369,18 +369,18 @@ class RangeSeekBarView @JvmOverloads constructor(
         invalidate()
     }
 
-
-
     private fun setLeftPos(value: Float) {
         val mostLeft = mPaddingLeft.toFloat()
         val mostRight = rightPos - thumbWidth - minWidth
         leftPos = max(mostLeft, min(value, mostRight.toFloat()))
+        println("ISKNDR setLeftPos($value) set to $leftPos width:$width")
     }
 
     private fun setRightPos(value: Float) {
         val mostLeft = leftPos + thumbWidth + minWidth
         val mostRight = width - mPaddingRight - mPaddingRight
         rightPos = min(mostRight.toFloat(), max(mostLeft.toFloat(), value))
+        println("ISKNDR setRightPos($value) set to $rightPos width:$width")
     }
 
     private fun updateLeftTime() {
