@@ -2,7 +2,7 @@
     <dimen name="bloom_native_frames_video_height">90dp</dimen>
     <dimen name="bloom_native_thumb_width">14dp</dimen>
     <dimen name="bloom_native_paddingTimeline">15dp</dimen>
-    <dimen name="bloom_native_timeTextPadding">1dp</dimen>
+    <dimen name="bloom_native_timeTextPadding">5dp</dimen>
     <dimen name="bloom_native_extraTouchArea">18dp</dimen>
     <dimen name="bloom_native_rangeBarPaddingTop">40dp</dimen>
     <dimen name="bloom_native_rangeBarTextPaddingTop">33dp</dimen>

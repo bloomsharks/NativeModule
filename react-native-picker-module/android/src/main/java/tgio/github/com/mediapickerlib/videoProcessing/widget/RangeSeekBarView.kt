@@ -78,9 +78,9 @@ class RangeSeekBarView @JvmOverloads constructor(
         get() = normalizedToValue(normalizedMinValueTime)
         set(value) {
             if (0.0 == absoluteMaxValuePrim - absoluteMinValuePrim) {
-                setNormalizedMinValue(0.0)
+//                setNormalizedMinValue(0.0)
             } else {
-                setNormalizedMinValue(valueToNormalized(value))
+//                setNormalizedMinValue(valueToNormalized(value))
             }
         }
 
@@ -90,13 +90,12 @@ class RangeSeekBarView @JvmOverloads constructor(
             return m
         }
         set(value) {
-            if (0.0 == absoluteMaxValuePrim - absoluteMinValuePrim) {
-                setNormalizedMaxValue(1.0)
-            } else {
-                setNormalizedMaxValue(valueToNormalized(value))
-            }
+//            if (0.0 == absoluteMaxValuePrim - absoluteMinValuePrim) {
+//                setNormalizedMaxValue(1.0)
+//            } else {
+//                setNormalizedMaxValue(valueToNormalized(value))
+//            }
         }
-
 
     enum class Thumb {
         L, R
@@ -418,13 +417,13 @@ class RangeSeekBarView @JvmOverloads constructor(
         }
 
         setProgressPos(leftPos)
-
-        leftTextPos = leftPos
-        rightTextPos = rightPos
         calcTextPositions()
     }
 
     private fun calcTextPositions() {
+        leftTextPos = leftPos
+        rightTextPos = rightPos + thumbWidth
+
         val leftBounds = Rect()
         mVideoTrimTimePaintL.getTextBounds(leftThumbsTime, 0, leftThumbsTime.length, leftBounds)
         val leftWidth = leftBounds.width()
@@ -438,28 +437,39 @@ class RangeSeekBarView @JvmOverloads constructor(
 
         val diff = abs(leftX - rightX)
 
+
+
         if (leftX >= rightX) {
             if (rightTextPos + thumbWidth + mPaddingRight >= getSafeWidth().toFloat()) {
+                println("calcTextPositions 1")
                 leftTextPos -= diff
             } else if (leftTextPos <= mPaddingLeft) {
+                println("calcTextPositions 2")
                 rightTextPos += diff
             } else {
+                println("calcTextPositions 3")
                 leftTextPos -= diff / 2
                 rightTextPos += diff / 2
             }
         }
+
+        leftTextPos = max(mPaddingRight.toFloat(), leftTextPos)
+//        rightTextPos = min(width - mPaddingRight.toFloat(), rightTextPos + thumbWidth)
+        println("calcTextPositions leftX:$leftX; diff:$diff; leftTextPos:$leftTextPos: leftWidth:$leftWidth;")
+        println("calcTextPositions rightX:$rightX; diff:$diff; rightTextPos:$rightTextPos; rightWidth:$rightWidth;")
     }
 
     private fun drawVideoTrimTimeText(canvas: Canvas) {
+        println("calcTextPositions draw leftTextPos:$leftTextPos; rightTextPos:$rightTextPos;")
         canvas.drawText(
             leftThumbsTime,
-            max(mPaddingRight.toFloat(), leftTextPos),
+            leftTextPos,
             textPositionY.toFloat(),
             mVideoTrimTimePaintL
         )
         canvas.drawText(
             rightThumbsTime,
-            min(width - mPaddingRight.toFloat(), rightTextPos + thumbWidth),
+            rightTextPos,
             textPositionY.toFloat(),
             mVideoTrimTimePaintR
         )
@@ -495,11 +505,14 @@ class RangeSeekBarView @JvmOverloads constructor(
                 isPressed = true
                 mIsDragging = true
 
+
                 if (pressedThumb == Thumb.L) {
                     xDiff = mDownMotionX - leftPos
                 } else if (pressedThumb == Thumb.R) {
                     xDiff = mDownMotionX - rightPos
                 }
+
+
 
                 attemptClaimDrag()
 
@@ -513,6 +526,7 @@ class RangeSeekBarView @JvmOverloads constructor(
                 )
             }
             MotionEvent.ACTION_MOVE -> if (pressedThumb != null) {
+
                 if (Thumb.L == pressedThumb) {
                     moveThumbL(eventX, xDiff)
                 } else if (Thumb.R == pressedThumb) {
@@ -605,13 +619,6 @@ class RangeSeekBarView @JvmOverloads constructor(
         }
     }
 
-    private fun moveThumbL(screenCoordX: Float, mod: Float) {
-//        leftThumbsTime = Utils.convertSecondsToTime(mStartPosition / 1000)
-//        leftThumbsTime = mStartPosition.toString()
-        setNormalizedMinValue(screenToNormalizedL(screenCoordX - mod - mPaddingLeft))
-        updateLeftTime()
-    }
-
     private var leftMs = 0L
     private var rightMs = 0L
 
@@ -622,8 +629,16 @@ class RangeSeekBarView @JvmOverloads constructor(
     fun getLength(): Long = max(mMinShootTime, min(mMaxShootTime, abs(rightMs - leftMs + 36)))
 
     private fun moveThumbR(screenCoordX: Float, mod: Float) {
-        setNormalizedMaxValue(screenToNormalizedR(screenCoordX - mod + mPaddingRight))
+        setNormalizedMaxValue(screenToNormalizedR(screenCoordX - progressWidth - mod + mPaddingRight))
         updateRightTime()
+        calcTextPositions()
+    }
+
+    private fun moveThumbL(screenCoordX: Float, mod: Float) {
+        val normalized = screenToNormalizedL(screenCoordX - progressWidth - mod - mPaddingLeft)
+        setNormalizedMinValue(normalized)
+        updateLeftTime()
+        calcTextPositions()
     }
 
     private fun screenToNormalizedL(screenCoord: Float): Double {

@@ -257,22 +257,24 @@ class VideoTrimmer(
         }
         val to = rangeSeekBarView.getRightPos()
 
-        var fromMs = 0
-        var toMs = 0L
+        var fromMs: Int
+        val toMs: Long
+
+        val SLOP = 25
 
         if(selectedThumb == RangeSeekBarView.Thumb.L) {
             fromMs = videoView.currentPosition
-            toMs = fromMs + 100L
+            toMs = fromMs + SLOP.toLong()
         } else if(selectedThumb == RangeSeekBarView.Thumb.R) {
             toMs = rangeSeekBarView.getRightMs()
-            fromMs = toMs.toInt() - 100
+            fromMs = toMs.toInt() - SLOP
         } else {
             fromMs = videoView.currentPosition
             toMs = rangeSeekBarView.getRightMs()
         }
 
         if(fromMs > toMs) {
-            fromMs = toMs.toInt() - 100
+            fromMs = toMs.toInt() - SLOP
         }
 
         val duration = toMs - fromMs
