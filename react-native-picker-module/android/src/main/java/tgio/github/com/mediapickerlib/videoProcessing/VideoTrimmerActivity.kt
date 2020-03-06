@@ -148,8 +148,6 @@ class VideoTrimmerActivity : AppCompatActivity(R.layout.bloom_native_activity_vi
         ivThumbnail.setImageURI(Uri.parse(videoMetaData.thumbnailPath))
         applyVideoViewParams(videoHeight = videoMetaData.height.toInt(), videoWidth = videoMetaData.width.toInt())
 
-        println("videoMetaData $videoMetaData")
-
         if (paramVideoPath.isNullOrBlank()) {
             postError("paramVideoPath is missing")
         } else {
@@ -235,28 +233,22 @@ class VideoTrimmerActivity : AppCompatActivity(R.layout.bloom_native_activity_vi
     }
 
     private fun onVideoReady() {
-        println("videoMetaData onVideoReady")
         ivThumbnail.visibility = View.GONE
     }
 
     private fun applyVideoViewParams(videoWidth: Int, videoHeight: Int) {
-        println("videoMetaData applyVideoViewParams() videoWidth = [${videoWidth}], videoHeight = [${videoHeight}]")
         val screenWidth = resources.displayMetrics.widthPixels
         val screenHeight = resources.displayMetrics.heightPixels
         val lp = mLinearVideo.layoutParams
         val r = videoHeight / videoWidth.toFloat()
 
         if (videoHeight > videoWidth) {
-//            lp.height = screenHeight
             lp.width = (lp.height / r).toInt()
             overlay.layoutParams.width = lp.width
-            println("videoMetaData 1 : ${lp.width}")
         } else if(videoHeight < videoWidth) {
             lp.height = (screenWidth * r).toInt()
-            println("videoMetaData 2 height:${lp.height} width:${lp.width} r:$r")
         } else {
             lp.height = mLinearVideo.width
-            println("videoMetaData 3")
         }
         mLinearVideo.layoutParams = lp
     }
@@ -279,8 +271,8 @@ class VideoTrimmerActivity : AppCompatActivity(R.layout.bloom_native_activity_vi
         videoTrimmer.trimVideo(
                 inputPath = mSourceUri!!.path!!,
                 outputPath = cacheDir.path,
-                startMs = mRangeSeekBarView.getStartPosition(),
-                endMs = mRangeSeekBarView.getEndPosition(),
+                startMs = mRangeSeekBarView.getLeftMs(),
+                endMs = mRangeSeekBarView.getRightMs(),
                 doEncode = paramDoEncode,
                 listener = trimListener
         )

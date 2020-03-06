@@ -88,7 +88,6 @@ object MetaDataUtils {
             } catch (e: Exception) {
                 0
             }
-            println("videoMetaData rotation:$rotation")
             if(rotation > 0 && rotation != 180) {
                 return VideoMetaData(thumbnail, durationMillis, height, width)
             } else {

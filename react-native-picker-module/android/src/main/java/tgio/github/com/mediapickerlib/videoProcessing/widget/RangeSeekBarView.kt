@@ -373,14 +373,12 @@ class RangeSeekBarView @JvmOverloads constructor(
         val mostLeft = mPaddingLeft.toFloat()
         val mostRight = rightPos - thumbWidth - minWidth
         leftPos = max(mostLeft, min(value, mostRight.toFloat()))
-        println("ISKNDR setLeftPos($value) set to $leftPos width:$width")
     }
 
     private fun setRightPos(value: Float) {
         val mostLeft = leftPos + thumbWidth + minWidth
         val mostRight = getNotNullWidth() - mPaddingRight - mPaddingRight
         rightPos = min(mostRight.toFloat(), max(mostLeft.toFloat(), value))
-        println("ISKNDR setRightPos($value) set to $rightPos width:$width")
     }
 
     private fun getNotNullWidth() = screenWidth
@@ -443,26 +441,20 @@ class RangeSeekBarView @JvmOverloads constructor(
 
         if (leftX >= rightX) {
             if (rightTextPos + thumbWidth + mPaddingRight >= getSafeWidth().toFloat()) {
-                println("calcTextPositions 1")
                 leftTextPos -= diff
             } else if (leftTextPos <= mPaddingLeft) {
-                println("calcTextPositions 2")
                 rightTextPos += diff
             } else {
-                println("calcTextPositions 3")
                 leftTextPos -= diff / 2
                 rightTextPos += diff / 2
             }
         }
 
         leftTextPos = max(mPaddingRight.toFloat(), leftTextPos)
-//        rightTextPos = min(width - mPaddingRight.toFloat(), rightTextPos + thumbWidth)
-        println("calcTextPositions leftX:$leftX; diff:$diff; leftTextPos:$leftTextPos: leftWidth:$leftWidth;")
-        println("calcTextPositions rightX:$rightX; diff:$diff; rightTextPos:$rightTextPos; rightWidth:$rightWidth;")
+        rightTextPos = min(width - mPaddingRight.toFloat(), rightTextPos + thumbWidth)
     }
 
     private fun drawVideoTrimTimeText(canvas: Canvas) {
-        println("calcTextPositions draw leftTextPos:$leftTextPos; rightTextPos:$rightTextPos;")
         canvas.drawText(
             leftThumbsTime,
             leftTextPos,
@@ -624,6 +616,9 @@ class RangeSeekBarView @JvmOverloads constructor(
     private var leftMs = 0L
     private var rightMs = 0L
 
+    fun getLeftMs(): Long {
+        return leftMs
+    }
     fun getRightMs(): Long {
         return rightMs
     }
