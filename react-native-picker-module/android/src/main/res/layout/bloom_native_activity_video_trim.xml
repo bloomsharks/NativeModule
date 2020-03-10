@@ -8,63 +8,8 @@
     android:background="#fff"
     android:orientation="vertical">
 
-  <androidx.appcompat.widget.Toolbar
-      android:id="@+id/toolbar"
-      android:layout_width="match_parent"
-      android:layout_height="44dp"
-      android:minHeight="44dp"
-      constraint:contentInsetEnd="0dp"
-      constraint:contentInsetStart="0dp"
-      constraint:layout_constraintTop_toTopOf="parent">
-
-    <ImageButton
-        android:id="@+id/ibtnBack"
-        android:layout_width="wrap_content"
-        android:layout_height="44dp"
-        android:adjustViewBounds="true"
-        android:background="@android:color/transparent"
-        android:padding="0dp"
-        android:scaleType="centerInside"
-        android:src="@drawable/bloom_native_ic_back"
-        android:stateListAnimator="@null" />
-
-    <TextView
-        android:id="@+id/toolbar_title"
-        style="@style/TextAppearance.Widget.AppCompat.Toolbar.Title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:fontFamily="@font/proxima_nova_bold"
-        android:text="Cutter"
-        android:letterSpacing="0.02"
-        android:lineSpacingExtra="2sp"
-        android:textColor="@color/bloom_native_dark"
-        android:textSize="15sp" />
-
-    <Button
-        android:id="@+id/btnSave"
-        android:layout_width="wrap_content"
-        android:layout_height="44dp"
-        android:layout_gravity="end"
-        android:backgroundTint="#FFFFFF"
-        android:enabled="true"
-        android:fontFamily="@font/proxima_nova_regular"
-        android:paddingEnd="16dp"
-        android:stateListAnimator="@null"
-        android:text="Next"
-        android:textAlignment="textEnd"
-        android:textAllCaps="false"
-        android:textColor="@color/bloom_native_main"
-        android:textSize="15sp"
-        android:textStyle="bold" />
-
-  </androidx.appcompat.widget.Toolbar>
-  
-  <View
-      android:layout_width="match_parent"
-      android:layout_height="2dp"
-      android:background="@drawable/toolbar_shadow"
-      constraint:layout_constraintTop_toBottomOf="@+id/toolbar"/>
+  <include android:id="@+id/toolbarContainer"
+      layout="@layout/bloom_native_toolbar"/>
 
   <RelativeLayout
       android:id="@+id/layout_surface_view"
@@ -73,7 +18,7 @@
       android:gravity="center"
       constraint:layout_constraintEnd_toEndOf="parent"
       constraint:layout_constraintStart_toStartOf="parent"
-      constraint:layout_constraintTop_toBottomOf="@+id/toolbar">
+      constraint:layout_constraintTop_toBottomOf="@+id/toolbarContainer">
 
     <net.protyposis.android.mediaplayer.VideoView
         android:id="@+id/video_loader"
@@ -96,7 +41,7 @@
       constraint:layout_constraintBottom_toBottomOf="@+id/layout_surface_view"
       constraint:layout_constraintEnd_toEndOf="@+id/layout_surface_view"
       constraint:layout_constraintStart_toStartOf="@+id/layout_surface_view"
-      constraint:layout_constraintTop_toBottomOf="@+id/toolbar" />
+      constraint:layout_constraintTop_toBottomOf="@+id/toolbarContainer" />
 
   <ImageView
       android:id="@+id/ivPlayPause"

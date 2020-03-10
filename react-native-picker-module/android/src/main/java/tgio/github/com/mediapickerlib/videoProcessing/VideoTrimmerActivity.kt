@@ -14,6 +14,7 @@ import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.bloom_native_activity_video_trim.*
+import kotlinx.android.synthetic.main.bloom_native_toolbar.*
 import net.protyposis.android.mediaplayer.VideoView
 import tgio.github.com.mediapickerlib.*
 import tgio.github.com.mediapickerlib.videoProcessing.callbacks.VideoCompressListener
@@ -222,6 +223,7 @@ class VideoTrimmerActivity : AppCompatActivity(R.layout.bloom_native_activity_vi
         ivThumbnail = findViewById(R.id.ivThumbnail)
         mSeekBarLayout = findViewById(R.id.seekBarLayout)
 
+        toolbar_title.text = "Cutter"
         btnSave.text = nextButtonString
 
         mRangeSeekBarView =

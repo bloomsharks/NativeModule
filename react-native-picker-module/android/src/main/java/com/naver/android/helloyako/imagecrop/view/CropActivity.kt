@@ -6,8 +6,6 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuItem
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
@@ -16,6 +14,7 @@ import com.hbisoft.pickit.PickiT
 import com.hbisoft.pickit.PickiTCallbacks
 import com.naver.android.helloyako.imagecrop.BitmapDecodeAsync
 import com.naver.android.helloyako.imagecrop.DownloadAsync
+import kotlinx.android.synthetic.main.bloom_native_toolbar.*
 import tgio.github.com.mediapickerlib.CustomError
 import tgio.github.com.mediapickerlib.DEFAULT_MIN_ZOOM
 import tgio.github.com.mediapickerlib.Photo
@@ -43,6 +42,7 @@ class CropActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.bloom_native_activity_crop)
 
+        toolbar_title.text = "Crop"
 
         toolbar = findViewById(R.id.toolbar)
         btnSave = findViewById(R.id.btnSave)
@@ -53,6 +53,8 @@ class CropActivity : AppCompatActivity() {
         }
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayShowTitleEnabled(false)
+
+        ibtnBack.setOnClickListener { onBackPressed() }
 
         if (intent.extras == null || intent.hasExtra("uri").not()) {
             setResult(
@@ -137,17 +139,5 @@ class CropActivity : AppCompatActivity() {
     override fun onBackPressed() {
         super.onBackPressed()
         setResult(Activity.RESULT_CANCELED)
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == android.R.id.home) {
-            onBackPressed()
-            return true
-        }
-        return super.onOptionsItemSelected(item)
     }
 }
