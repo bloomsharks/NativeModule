@@ -45,6 +45,8 @@ class VideoTrimmerActivity : AppCompatActivity(R.layout.bloom_native_activity_vi
         DEFAULT_COMPRESS_AFTER_TRIM
     private var paramDoEncode =
         DEFAULT_COMPRESS_AFTER_TRIM
+    private var nextButtonString =
+        DEFAULT_NEXT_BUTTON_STRING
     private var paramVideoPath: String? = null
 
     private lateinit var videoTrimmer: VideoTrimmer
@@ -130,6 +132,11 @@ class VideoTrimmerActivity : AppCompatActivity(R.layout.bloom_native_activity_vi
                     DEFAULT_DO_ENCODE
                 )
             } else DEFAULT_DO_ENCODE
+            nextButtonString = if (hasExtra(KEY_NEXT_BUTTON_STRING)) {
+                getStringExtra(
+                    KEY_NEXT_BUTTON_STRING
+                )
+            } else DEFAULT_NEXT_BUTTON_STRING
         }
     }
 
@@ -213,6 +220,8 @@ class VideoTrimmerActivity : AppCompatActivity(R.layout.bloom_native_activity_vi
         ivPlayPause = findViewById(R.id.ivPlayPause)
         ivThumbnail = findViewById(R.id.ivThumbnail)
         mSeekBarLayout = findViewById(R.id.seekBarLayout)
+
+        btnSave.text = nextButtonString
 
         mRangeSeekBarView =
             RangeSeekBarView(
