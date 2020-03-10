@@ -149,10 +149,13 @@ class VideoTrimmerActivity : AppCompatActivity(R.layout.bloom_native_activity_vi
 
 //        paramVideoPath = "/sdcard/Download/portrait.mp4"
 
-        val videoMetaData = intent.getParcelableExtra<MetaDataUtils.VideoMetaData>(KEY_VIDEO_META_DATA)
+        val thumbnailPath = intent.getStringExtra(KEY_VIDEO_THUMBNAIL_PATH)
+        val videoHeight: Int = intent.getIntExtra(KEY_VIDEO_HEIGHT, 0)
+        val videoWidth: Int = intent.getIntExtra(KEY_VIDEO_WIDTH, 0)
+        val videoDuration: Long = intent.getLongExtra(KEY_VIDEO_DURATION, 0L)
 
-        ivThumbnail.setImageURI(Uri.parse(videoMetaData.thumbnailPath))
-        applyVideoViewParams(videoHeight = videoMetaData.height.toInt(), videoWidth = videoMetaData.width.toInt())
+        ivThumbnail.setImageURI(Uri.parse(thumbnailPath))
+        applyVideoViewParams(videoHeight = videoHeight, videoWidth = videoWidth)
 
         if (paramVideoPath.isNullOrBlank()) {
             postError("paramVideoPath is missing")
@@ -173,7 +176,7 @@ class VideoTrimmerActivity : AppCompatActivity(R.layout.bloom_native_activity_vi
                 setIsPlaying = ::setIsPlaying,
                 setDurationText = ::setDurationText,
                 videoReady = ::onVideoReady,
-                mDuration = videoMetaData.durationMillis.toLong()
+                mDuration = videoDuration
             )
         videoTrimmer.reset()
     }
@@ -313,12 +316,18 @@ class VideoTrimmerActivity : AppCompatActivity(R.layout.bloom_native_activity_vi
             videoPath: String,
             request: Video,
             originalFileName: String,
-            videoMetaData: MetaDataUtils.VideoMetaData
+            thumbnailPath: String,
+            videoWidth: Int,
+            videoHeight: Int,
+            videoDuration: Long
         ): Intent {
             return Intent(context, VideoTrimmerActivity::class.java).apply {
                 putExtra(KEY_VIDEO_PATH, videoPath)
                 putExtra(KEY_ORIGINAL_FILE_NAME, originalFileName)
-                putExtra(KEY_VIDEO_META_DATA, videoMetaData)
+                putExtra(KEY_VIDEO_THUMBNAIL_PATH, thumbnailPath)
+                putExtra(KEY_VIDEO_HEIGHT, videoHeight)
+                putExtra(KEY_VIDEO_WIDTH, videoWidth)
+                putExtra(KEY_VIDEO_DURATION, videoDuration)
                 putExtras(request.toBundle())
             }
         }

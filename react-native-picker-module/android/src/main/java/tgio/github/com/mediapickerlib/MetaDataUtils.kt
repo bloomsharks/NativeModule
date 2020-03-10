@@ -4,8 +4,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
 import android.net.Uri
-import android.os.Parcel
-import android.os.Parcelable
 import android.provider.OpenableColumns
 import androidx.core.net.toFile
 import java.io.File
@@ -20,37 +18,38 @@ object MetaDataUtils {
         val durationMillis: String,
         val width: String,
         val height: String
-    ) : Parcelable {
-        companion object {
-            @JvmField
-            val CREATOR: Parcelable.Creator<VideoMetaData> =
-                object : Parcelable.Creator<VideoMetaData> {
-                    override fun createFromParcel(source: Parcel): VideoMetaData =
-                        VideoMetaData(source)
-
-                    override fun newArray(size: Int): Array<VideoMetaData?> = arrayOfNulls(size)
-                }
-        }
-
-        constructor(source: Parcel): this(
-        source.readString() ?: "",
-        source.readString() ?: "",
-        source.readString() ?: "",
-        source.readString() ?: ""
-        )
-
-        override fun describeContents() = 0
-
-        override fun writeToParcel(dest: Parcel, flags: Int) = with(dest) {
-            writeString(thumbnailPath)
-            writeString(durationMillis)
-            writeString(width)
-            writeString(height)
-        }
-
+    ) {
         override fun toString(): String {
             return "VideoMetaData(thumbnailPath='$thumbnailPath', durationMillis='$durationMillis', width='$width', height='$height')"
         }
+    }
+
+    private fun getThumbnailAt(
+        context: Context,
+        retriever: MediaMetadataRetriever,
+        at: Long,
+        quality: Int
+    ): String {
+        val image = retriever.getFrameAtTime(at)
+        val fullPath = context.cacheDir.path + "/bloom_native_thumb_l"
+        val dir = File(fullPath)
+        if (!dir.exists()) {
+            dir.mkdirs()
+        }
+        val fileName = "bloom_native_thumb_l-" + UUID.randomUUID().toString() + ".jpeg"
+        val file = File(fullPath, fileName)
+        file.createNewFile()
+        try {
+            val fOut: OutputStream = FileOutputStream(file)
+            image.compress(Bitmap.CompressFormat.JPEG, quality, fOut)
+            fOut.flush()
+            fOut.close()
+
+        } catch (e: Exception) {
+            return ""
+        }
+
+        return "file://$fullPath/$fileName"
     }
 
     fun getVideoMetaData(
@@ -60,38 +59,25 @@ object MetaDataUtils {
     ): VideoMetaData {
         val retriever = MediaMetadataRetriever()
         retriever.setDataSource(context, filePath)
-        val image = retriever.getFrameAtTime(
-            0,
-            MediaMetadataRetriever.OPTION_CLOSEST_SYNC
-        )
 
-        val fullPath = context.cacheDir.path + "/bloom_native_thumb_l"
+        val thumbnail = getThumbnailAt(context, retriever, 1000, thumbnailQuality)
+
         try {
-            val dir = File(fullPath)
-            if (!dir.exists()) {
-                dir.mkdirs()
-            }
-            val fileName = "bloom_native_thumb_l-" + UUID.randomUUID().toString() + ".jpeg"
-            val file = File(fullPath, fileName)
-            file.createNewFile()
-            val fOut: OutputStream = FileOutputStream(file)
-            image.compress(Bitmap.CompressFormat.JPEG, thumbnailQuality, fOut)
-            fOut.flush()
-            fOut.close()
-            val thumbnail = "file://$fullPath/$fileName"
             val durationMillis =
                 retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
             val height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
             val width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
             val rotation = try {
-                retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION).toInt()
+                retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)
+                    .toInt()
             } catch (e: Exception) {
                 0
             }
-            if(rotation > 0 && rotation != 180) {
-                return VideoMetaData(thumbnail, durationMillis, height, width)
+            println("Rotation: $rotation")
+            return if (rotation > 0 && rotation != 180) {
+                VideoMetaData(thumbnail, durationMillis, height, width)
             } else {
-                return VideoMetaData(thumbnail, durationMillis, width, height)
+                VideoMetaData(thumbnail, durationMillis, width, height)
             }
         } catch (ex: Exception) {
             throw ex

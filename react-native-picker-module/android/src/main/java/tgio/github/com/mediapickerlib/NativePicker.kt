@@ -59,20 +59,26 @@ class NativePicker(
         requestCode = REQUEST_CODE_CROP_IMAGE
     )
 
-    private fun launchTrim(videoPath: String, originalFileName: String) = proxy(
-        intent = VideoTrimmerActivity.getIntent(
+    private fun launchTrim(videoPath: String, originalFileName: String) {
+        val meta = MetaDataUtils.getVideoMetaData(
             context = activity,
-            videoPath = videoPath,
-            request = pickMediaRequest as Video,
-            originalFileName = originalFileName,
-            videoMetaData = MetaDataUtils.getVideoMetaData(
+            filePath = Uri.parse(videoPath),
+            thumbnailQuality = 100
+        )
+        proxy(
+            intent = VideoTrimmerActivity.getIntent(
                 context = activity,
-                filePath = Uri.parse(videoPath),
-                thumbnailQuality = 100
-            )
-        ),
-        requestCode = REQUEST_TRIM_VIDEO
-    )
+                videoPath = videoPath,
+                request = pickMediaRequest as Video,
+                originalFileName = originalFileName,
+                videoWidth = meta.width.toInt(),
+                videoHeight = meta.height.toInt(),
+                videoDuration = meta.durationMillis.toLong(),
+                thumbnailPath = meta.thumbnailPath
+            ),
+            requestCode = REQUEST_TRIM_VIDEO
+        )
+    }
 
     private fun launchVideoPicker() = proxy(
         intent = pickMediaRequest.getIntent(),
