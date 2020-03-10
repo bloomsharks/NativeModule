@@ -245,11 +245,10 @@ class VideoTrimmerActivity : AppCompatActivity(R.layout.bloom_native_activity_vi
 
     private fun applyVideoViewParams(videoWidth: Int, videoHeight: Int) {
         val screenWidth = resources.displayMetrics.widthPixels
-        val screenHeight = resources.displayMetrics.heightPixels
         val lp = mLinearVideo.layoutParams
         val r = videoHeight / videoWidth.toFloat()
 
-        if (videoHeight > videoWidth) {
+        if (videoHeight > videoWidth || videoHeight == videoWidth) {
             lp.width = (lp.height / r).toInt()
             overlay.layoutParams.width = lp.width
         } else if(videoHeight < videoWidth) {
