@@ -10,6 +10,7 @@ import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.net.toUri
+import androidx.exifinterface.media.ExifInterface
 import com.hbisoft.pickit.PickiT
 import com.hbisoft.pickit.PickiTCallbacks
 import com.naver.android.helloyako.imagecrop.BitmapDecodeAsync
@@ -90,11 +91,46 @@ class CropActivity : AppCompatActivity() {
             ) {
                 if (wasSuccessful) {
                     bloomNativeImageCropView.setImageFilePath(path)
+
+
+
+
+                    if(photo.ratioY == 0 || photo.ratioX == 0) {
+                        val exif = ExifInterface(File(path))
+                        val width = exif.getAttributeInt(ExifInterface.TAG_IMAGE_WIDTH, 0)
+                        val length = exif.getAttributeInt(ExifInterface.TAG_IMAGE_LENGTH, 0)
+                        val rotation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, 0)
+
+                        val shouldFlip = when(rotation) {
+                            ExifInterface.ORIENTATION_ROTATE_90 -> true
+                            ExifInterface.ORIENTATION_ROTATE_270 -> true
+                            else -> false
+                        }
+
+                        var ratX = 4
+                        var ratY = 3
+
+                        if(width < length || shouldFlip) {
+                            ratX = 3
+                            ratY = 4
+                        }
+
+//                        println("EXXIF width:$width length:$length rotation:$rotation;")
+//                        println("EXXIF photo.ratioX:${photo.ratioX}; photo.ratioY:${photo.ratioY};")
+//                        println("EXXIF shouldFlip:$shouldFlip; ratX:$ratX; ratY:$ratY;")
+
+
+                        bloomNativeImageCropView.setAspectRatio(ratX, ratY)
+                    }
+
+
                     DownloadAsync(
                         this@CropActivity,
                         photo
                     ) { bitmap: Bitmap, ratioX: Int, ratioY: Int ->
-                        bloomNativeImageCropView.setAspectRatio(ratioX, ratioY)
+//                        println("EXXIF ratioX:$ratioX ratioY:$ratioY")
+//                        println("EXXIF ===============================================")
+//                        bloomNativeImageCropView.setAspectRatio(ratioX, ratioY)
                         bloomNativeImageCropView.setImageBitmap(
                             bitmap,
                             DEFAULT_MIN_ZOOM,
