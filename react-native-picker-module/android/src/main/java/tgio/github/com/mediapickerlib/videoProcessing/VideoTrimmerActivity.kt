@@ -207,6 +207,7 @@ class VideoTrimmerActivity : AppCompatActivity(R.layout.bloom_native_activity_vi
     override fun onDestroy() {
         super.onDestroy()
         Utils.dismissDialog(mDialog)
+        CacheUtils.deleteGlideCacheFiles(this)
     }
 
     private fun dismissActiveDialog() {
