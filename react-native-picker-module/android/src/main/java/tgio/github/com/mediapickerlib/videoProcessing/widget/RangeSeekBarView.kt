@@ -398,9 +398,7 @@ class RangeSeekBarView @JvmOverloads constructor(
         val calcTime = modValue / total
         rightMs = mMaxShootTime - normalizedToValue(calcTime.toDouble())
         val result = Utils.convertSecondsToTime((rightMs + extraMsFromTimeline ) / 1000)
-
         rightThumbsTime = result
-//        rightThumbsTime = rightMs.toString()
     }
 
     private var initialLayout = true
@@ -451,7 +449,7 @@ class RangeSeekBarView @JvmOverloads constructor(
         }
 
         leftTextPos = max(mPaddingRight.toFloat(), leftTextPos)
-        rightTextPos = min(width - mPaddingRight.toFloat(), rightTextPos + thumbWidth)
+        rightTextPos = min(getNotNullWidth() - mPaddingRight.toFloat(), rightTextPos + thumbWidth)
     }
 
     private fun drawVideoTrimTimeText(canvas: Canvas) {
