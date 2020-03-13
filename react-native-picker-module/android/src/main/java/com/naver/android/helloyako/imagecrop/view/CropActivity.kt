@@ -92,9 +92,6 @@ class CropActivity : AppCompatActivity() {
                 if (wasSuccessful) {
                     bloomNativeImageCropView.setImageFilePath(path)
 
-
-
-
                     if(photo.ratioY == 0 || photo.ratioX == 0) {
                         val exif = ExifInterface(File(path))
                         val width = exif.getAttributeInt(ExifInterface.TAG_IMAGE_WIDTH, 0)
@@ -115,11 +112,6 @@ class CropActivity : AppCompatActivity() {
                             ratY = 4
                         }
 
-//                        println("EXXIF width:$width length:$length rotation:$rotation;")
-//                        println("EXXIF photo.ratioX:${photo.ratioX}; photo.ratioY:${photo.ratioY};")
-//                        println("EXXIF shouldFlip:$shouldFlip; ratX:$ratX; ratY:$ratY;")
-
-
                         bloomNativeImageCropView.setAspectRatio(ratX, ratY)
                     }
 
@@ -128,9 +120,9 @@ class CropActivity : AppCompatActivity() {
                         this@CropActivity,
                         photo
                     ) { bitmap: Bitmap, ratioX: Int, ratioY: Int ->
-//                        println("EXXIF ratioX:$ratioX ratioY:$ratioY")
-//                        println("EXXIF ===============================================")
-//                        bloomNativeImageCropView.setAspectRatio(ratioX, ratioY)
+                        if(photo.ratioY > 0 || photo.ratioX > 0) {
+                            bloomNativeImageCropView.setAspectRatio(ratioX, ratioY)
+                        }
                         bloomNativeImageCropView.setImageBitmap(
                             bitmap,
                             DEFAULT_MIN_ZOOM,
