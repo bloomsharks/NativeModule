@@ -232,7 +232,14 @@ class VideoTrimmer(
             isPrepared = true
             seekTo(0)
         }
-        videoReady.invoke()
+        mp.setOnInfoListener { mp, what, extra ->
+            if(what == MediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START) {
+                videoReady.invoke()
+                true
+            } else {
+                false
+            }
+        }
     }
 
     fun reset() {

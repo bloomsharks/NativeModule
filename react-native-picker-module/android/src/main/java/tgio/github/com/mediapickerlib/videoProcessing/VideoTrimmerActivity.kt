@@ -141,6 +141,8 @@ class VideoTrimmerActivity : AppCompatActivity(R.layout.bloom_native_activity_vi
         }
     }
 
+    lateinit var thumbnailPath: String
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         readParams()
@@ -149,7 +151,7 @@ class VideoTrimmerActivity : AppCompatActivity(R.layout.bloom_native_activity_vi
 
 //        paramVideoPath = "/sdcard/Download/portrait.mp4"
 
-        val thumbnailPath = intent.getStringExtra(KEY_VIDEO_THUMBNAIL_PATH)
+        thumbnailPath = intent.getStringExtra(KEY_VIDEO_THUMBNAIL_PATH) ?: ""
         val videoHeight: Int = intent.getIntExtra(KEY_VIDEO_HEIGHT, 0)
         val videoWidth: Int = intent.getIntExtra(KEY_VIDEO_WIDTH, 0)
         val videoDuration: Long = intent.getLongExtra(KEY_VIDEO_DURATION, 0L)
@@ -200,12 +202,20 @@ class VideoTrimmerActivity : AppCompatActivity(R.layout.bloom_native_activity_vi
 
     override fun onResume() {
         super.onResume()
+        showThumbnail()
         videoTrimmer.onResume()
     }
 
     public override fun onPause() {
         super.onPause()
         videoTrimmer.onPause()
+        thumbnailPath = MetaDataUtils.getVideoMetaData(
+            context = this,
+            filePath = mSourceUri!!,
+            thumbnailQuality = 100,
+            atMs = mVideoView.currentPosition.toLong()
+        ).thumbnailPath
+        showThumbnail()
     }
 
     override fun onDestroy() {
@@ -246,6 +256,15 @@ class VideoTrimmerActivity : AppCompatActivity(R.layout.bloom_native_activity_vi
     }
 
     private fun onVideoReady() {
+        hideThumbnail()
+    }
+
+    private fun showThumbnail() {
+        ivThumbnail.setImageURI(Uri.parse(thumbnailPath))
+        ivThumbnail.visibility = View.VISIBLE
+    }
+
+    private fun hideThumbnail() {
         ivThumbnail.visibility = View.GONE
     }
 
