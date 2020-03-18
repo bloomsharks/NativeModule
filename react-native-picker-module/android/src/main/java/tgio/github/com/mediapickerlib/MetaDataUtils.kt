@@ -30,7 +30,7 @@ object MetaDataUtils {
         at: Long,
         quality: Int
     ): String {
-        val image = retriever.getFrameAtTime(at)
+        val image = retriever.getFrameAtTime(at * 1000, MediaMetadataRetriever.OPTION_CLOSEST)
         val fullPath = context.cacheDir.path + "/bloom_native_thumb_l"
         val dir = File(fullPath)
         if (!dir.exists()) {
@@ -55,12 +55,13 @@ object MetaDataUtils {
     fun getVideoMetaData(
         context: Context,
         filePath: Uri,
-        thumbnailQuality: Int
+        thumbnailQuality: Int,
+        atMs: Long = 0
     ): VideoMetaData {
         val retriever = MediaMetadataRetriever()
         retriever.setDataSource(context, filePath)
 
-        val thumbnail = getThumbnailAt(context, retriever, 1000, thumbnailQuality)
+        val thumbnail = getThumbnailAt(context, retriever, atMs, thumbnailQuality)
 
         try {
             val durationMillis =
