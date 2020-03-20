@@ -519,6 +519,14 @@ class RangeSeekBarView @JvmOverloads constructor(
             }
             MotionEvent.ACTION_MOVE -> if (pressedThumb != null) {
 
+
+                val moveDistance = abs(eventX - mDownMotionX)
+                if(moveDistance < 1) {
+//                    println("MMOVE ignored, moveDistance $moveDistance")
+                    return false
+                }
+//                println("MMOVE moveDistance $moveDistance")
+
                 if (Thumb.L == pressedThumb) {
                     moveThumbL(eventX, xDiff)
                 } else if (Thumb.R == pressedThumb) {
